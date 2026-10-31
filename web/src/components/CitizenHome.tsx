@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Shield, ChevronRight, MapPin, MessageSquare, Radio, Megaphone } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { ChevronRight, MapPin, MessageSquare } from 'lucide-react';
 import { ReliefData } from '@/types';
 import { usePowerMode } from '@/lib/powerMode';
 
@@ -11,9 +11,71 @@ interface CitizenHomeProps {
   onOpenSOS: () => void;
 }
 
+const HOLD_DURATION_MS = 1800; // 1.8 seconds
+
 export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHomeProps) {
   const { isPowerSaving } = usePowerMode();
-  const latestAnnouncement = data.announcements[0];
+  const [holdProgress, setHoldProgress] = useState(0);
+  const [isHolding, setIsHolding] = useState(false);
+  const holdTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const holdStartRef = useRef<number>(0);
+  const triggeredRef = useRef(false);
+
+  const clearHoldTimer = useCallback(() => {
+    if (holdTimerRef.current) {
+      clearInterval(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    setHoldProgress(0);
+    setIsHolding(false);
+    triggeredRef.current = false;
+  }, []);
+
+  const startHold = useCallback(() => {
+    if (triggeredRef.current) return;
+    holdStartRef.current = Date.now();
+    setIsHolding(true);
+    setHoldProgress(0);
+
+    holdTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - holdStartRef.current;
+      const progress = Math.min(elapsed / HOLD_DURATION_MS, 1);
+      setHoldProgress(progress);
+
+      if (progress >= 1 && !triggeredRef.current) {
+        triggeredRef.current = true;
+        clearInterval(holdTimerRef.current!);
+        holdTimerRef.current = null;
+        // Haptic feedback if available
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate(50);
+        }
+        onOpenSOS();
+        // Reset after opening
+        setTimeout(() => {
+          setHoldProgress(0);
+          setIsHolding(false);
+          triggeredRef.current = false;
+        }, 300);
+      }
+    }, 30);
+  }, [onOpenSOS, clearHoldTimer]);
+
+  const cancelHold = useCallback(() => {
+    clearHoldTimer();
+  }, [clearHoldTimer]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (holdTimerRef.current) clearInterval(holdTimerRef.current);
+    };
+  }, []);
+
+  // SVG ring progress for the SOS button
+  const circleRadius = 70;
+  const circumference = 2 * Math.PI * circleRadius;
+  const strokeDashoffset = circumference * (1 - holdProgress);
 
   return (
     <div className="pb-28">
@@ -41,50 +103,6 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
           Your community is within BLE reach.
         </p>
       </header>
-
-      {/* Official Announcement Card */}
-      {latestAnnouncement && (
-        <article
-          className={`mx-5 mb-4 rounded-3xl border p-4 transition-colors ${
-            isPowerSaving
-              ? 'bg-black border-neutral-800 text-[#00ff41]'
-              : latestAnnouncement.severity === 'critical'
-              ? 'border-red-500/50 bg-red-500/15 text-white'
-              : 'border-orange-500/40 bg-orange-500/10 text-white'
-          }`}
-        >
-          <div className="flex gap-3.5">
-            <span
-              className={`p-2.5 rounded-2xl flex-none ${
-                isPowerSaving
-                  ? 'border border-[#00ff41] bg-black text-[#00ff41]'
-                  : 'bg-orange-500/25 text-orange-300'
-              }`}
-            >
-              <Megaphone className="w-5 h-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <span
-                className={`text-xs font-extrabold uppercase tracking-wider block ${
-                  isPowerSaving ? 'text-[#00ff41]/70' : 'text-orange-300'
-                }`}
-              >
-                Official Alert · {latestAnnouncement.senderName}
-              </span>
-              <strong className="mt-1 block text-sm font-bold leading-snug">
-                {latestAnnouncement.title}
-              </strong>
-              <p
-                className={`mt-1 text-xs leading-relaxed line-clamp-3 ${
-                  isPowerSaving ? 'text-[#00ff41]/80' : 'text-stone-300'
-                }`}
-              >
-                {latestAnnouncement.body}
-              </p>
-            </div>
-          </div>
-        </article>
-      )}
 
       {/* Connectivity Banner */}
       <div
@@ -122,7 +140,7 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
         />
       </div>
 
-      {/* Main SOS Trigger Section */}
+      {/* Main SOS Trigger Section — PRESS & HOLD */}
       <section className="flex flex-col items-center py-4">
         <p
           className={`mb-3 text-xs font-bold uppercase tracking-wider ${
@@ -132,30 +150,67 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
           Need urgent help?
         </p>
 
-        {/* Circular SOS Button */}
-        <button
-          type="button"
-          onClick={onOpenSOS}
-          className={`grid size-36 place-items-center rounded-full transition-all active:scale-95 ${
-            isPowerSaving
-              ? 'border-2 border-[#00ff41] bg-black text-[#00ff41]'
-              : 'border border-red-400 bg-[radial-gradient(circle,#ff5e4f_0_42%,#e91e3a_43%_57%,rgba(121,20,34,.55)_58%_63%,transparent_64%)] shadow-[0_0_55px_rgba(242,37,53,.45)] text-white hover:brightness-110'
-          }`}
-        >
-          <span className="text-center">
-            <b className="block text-3xl font-extrabold tracking-wider">SOS</b>
-            <small className="text-xs font-bold uppercase tracking-wider block mt-0.5">
-              Tap to request
-            </small>
-          </span>
-        </button>
+        {/* Circular SOS Button with hold-to-activate ring */}
+        <div className="relative grid place-items-center size-40">
+          {/* SVG progress ring */}
+          <svg
+            className="absolute inset-0 -rotate-90 pointer-events-none"
+            width="160"
+            height="160"
+            viewBox="0 0 160 160"
+          >
+            <circle
+              cx="80"
+              cy="80"
+              r={circleRadius}
+              fill="none"
+              stroke={isPowerSaving ? '#00ff41' : '#ff263d'}
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              opacity={holdProgress > 0 ? 1 : 0}
+              style={{ transition: holdProgress > 0 ? 'none' : 'opacity 0.2s' }}
+            />
+          </svg>
+
+          <button
+            type="button"
+            onMouseDown={startHold}
+            onMouseUp={cancelHold}
+            onMouseLeave={cancelHold}
+            onTouchStart={startHold}
+            onTouchEnd={cancelHold}
+            onTouchCancel={cancelHold}
+            className={`grid size-36 place-items-center rounded-full select-none transition-all ${
+              isHolding ? 'scale-95' : ''
+            } ${
+              isPowerSaving
+                ? 'border-2 border-[#00ff41] bg-black text-[#00ff41]'
+                : 'border border-red-400 bg-[radial-gradient(circle,#ff5e4f_0_42%,#e91e3a_43%_57%,rgba(121,20,34,.55)_58%_63%,transparent_64%)] shadow-[0_0_55px_rgba(242,37,53,.45)] text-white hover:brightness-110'
+            }`}
+            style={{
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+            }}
+          >
+            <span className="text-center pointer-events-none">
+              <b className="block text-3xl font-extrabold tracking-wider">SOS</b>
+              <small className="text-[11px] font-bold uppercase tracking-wider block mt-0.5">
+                {isHolding
+                  ? `${Math.round(holdProgress * 100)}%`
+                  : 'Press & Hold'}
+              </small>
+            </span>
+          </button>
+        </div>
 
         <p
           className={`mt-4 text-xs ${
             isPowerSaving ? 'text-[#00ff41]/60' : 'text-stone-400'
           }`}
         >
-          Relays store-and-forward packets through nearby devices
+          Hold for {(HOLD_DURATION_MS / 1000).toFixed(1)}s to activate emergency SOS
         </p>
       </section>
 
@@ -219,65 +274,6 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
               </small>
             </div>
           </button>
-        </div>
-      </div>
-
-      {/* Mesh Diagnostics Status Bar */}
-      <div
-        className={`mx-5 mt-4 rounded-3xl border p-4 transition-colors ${
-          isPowerSaving
-            ? 'bg-black border-neutral-800'
-            : 'bg-black/40 border-red-950/70'
-        }`}
-      >
-        <div className="flex justify-between items-center border-b border-white/5 pb-2.5 text-xs font-bold uppercase tracking-wider">
-          <span
-            className={`flex items-center gap-2 ${
-              isPowerSaving ? 'text-[#00ff41]' : 'text-stone-300'
-            }`}
-          >
-            <Radio className="w-4 h-4" />
-            Mesh Radio Status
-          </span>
-          <b className={isPowerSaving ? 'text-[#00ff41]' : 'text-emerald-400'}>
-            ● Active (Mumbai)
-          </b>
-        </div>
-        <div
-          className={`grid grid-cols-3 pt-3 text-center text-xs ${
-            isPowerSaving ? 'text-[#00ff41]/70' : 'text-stone-400'
-          }`}
-        >
-          <div>
-            <b
-              className={`block text-lg font-bold ${
-                isPowerSaving ? 'text-[#00ff41]' : 'text-white'
-              }`}
-            >
-              06
-            </b>
-            nearby nodes
-          </div>
-          <div>
-            <b
-              className={`block text-lg font-bold ${
-                isPowerSaving ? 'text-[#00ff41]' : 'text-white'
-              }`}
-            >
-              02
-            </b>
-            relay hops
-          </div>
-          <div>
-            <b
-              className={`block text-lg font-bold ${
-                isPowerSaving ? 'text-[#00ff41]' : 'text-white'
-              }`}
-            >
-              OK
-            </b>
-            local queue
-          </div>
         </div>
       </div>
     </div>

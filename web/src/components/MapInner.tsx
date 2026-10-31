@@ -53,15 +53,19 @@ export default function MapInner({
     });
     mapInstanceRef.current = map;
 
-    // Use fast OSM / CartoDB tiles with multiple subdomains for maximum speed
-    const tileLayer = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      {
-        subdomains: 'abcd',
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-      }
-    ).addTo(map);
+    // Use standard OpenStreetMap tiles — via proxy for non-localhost (avoids CORS/referrer issues),
+    // direct OSM for localhost dev
+    const isLocalhost =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const tileUrl = isLocalhost
+      ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+      : '/api/map-tile/{z}/{x}/{y}.png';
+
+    const tileLayer = L.tileLayer(tileUrl, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
 
     // Fast resize invalidation to eliminate rendering lag
     const timer1 = setTimeout(() => map.invalidateSize(), 100);

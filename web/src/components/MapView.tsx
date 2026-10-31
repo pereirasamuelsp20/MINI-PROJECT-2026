@@ -42,6 +42,10 @@ export default function MapView() {
           // Fallback
         }
       }
+      // Auto-show permission modal if not yet granted
+      if (!granted) {
+        setShowPermissionModal(true);
+      }
     }
   }, []);
 
@@ -55,12 +59,6 @@ export default function MapView() {
 
   return (
     <div className="pb-24">
-      {/* Permission Modal */}
-      <PermissionModal
-        isOpen={showPermissionModal}
-        onComplete={handlePermissionsCompleted}
-      />
-
       {/* Header */}
       <header className="px-6 pb-3 pt-3">
         <div className="flex items-center justify-between">
@@ -134,15 +132,30 @@ export default function MapView() {
         </div>
       </header>
 
-      {/* Map Viewport Container */}
-      <div className="mx-5 h-[440px] relative rounded-3xl overflow-hidden border border-neutral-800 shadow-2xl">
-        <MapInner
-          userLocation={userCoords}
-          safeRouteActive={routeActive}
-          onSelectLocation={(name, distance) => {
-            setSelectedPoint({ name, distance });
-          }}
+      {/* Permission Modal — renders ABOVE everything with z-[60] */}
+      {showPermissionModal && (
+        <PermissionModal
+          isOpen={showPermissionModal}
+          onComplete={handlePermissionsCompleted}
         />
+      )}
+
+      {/* Map Viewport Container — only render map when permission modal is NOT showing */}
+      <div className="mx-5 h-[440px] relative rounded-3xl overflow-hidden border border-neutral-800 shadow-2xl">
+        {!showPermissionModal && (
+          <MapInner
+            userLocation={userCoords}
+            safeRouteActive={routeActive}
+            onSelectLocation={(name, distance) => {
+              setSelectedPoint({ name, distance });
+            }}
+          />
+        )}
+        {showPermissionModal && (
+          <div className="w-full h-full flex items-center justify-center bg-[#101515] text-stone-500 text-sm">
+            Grant permissions to load map
+          </div>
+        )}
       </div>
 
       {/* Selected Relief Point / Nearest Camp Card */}
