@@ -1,0 +1,16 @@
+[package]
+name = "disaster-mesh-protocol"
+description = "Wire format, CBOR serialization, and cryptographic types for the Disaster Mesh protocol"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_bytes = "0.11"
+serde_repr = "0.1"
+ciborium = "0.2"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+rand = "0.8"

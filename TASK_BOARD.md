@@ -68,11 +68,17 @@ Consumes versioned backend APIs; does not implement BLE protocol.
 - incident persistence
 - audit log
 
-### Sprint 4 — Web command center
-- incident map
-- status timeline
-- operator verification
-- dispatch workflow
+### Sprint 4 — Web command center & Interactive Mobile UI
+- [DONE] Interactive Figma UI + Backend Connection:
+  - Owner: Agent 4 (Web)
+  - Files: `web/src/app/**`, `web/src/components/**`, `web/src/lib/**`
+  - Dependency: Backend port 3001, Figma "Create interactive Ui" design
+  - Acceptance criteria: Exact visual match with Figma site, OpenStreetMap with safe zones/relays, Ultra-low Power Saving Mode (pure black + neon green), local persistence before transmission, and Rust backend synchronization.
+  - Test plan: Build check, unit route tests, tile proxy test, power mode toggle test. All tests passed.
+- incident map with uncertainty radii & OSM tile proxy [DONE]
+- status timeline & operations overview [DONE]
+- operator verification & lifecycle actions [DONE]
+- dispatch & broadcast workflow [DONE]
 
 ### Sprint 5 — Real-device BLE
 - phone-to-phone discovery

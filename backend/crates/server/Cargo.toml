@@ -1,0 +1,46 @@
+[package]
+name = "disaster-mesh-server"
+description = "Backend API server for the Disaster Mesh platform"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "disaster-mesh-server"
+path = "src/main.rs"
+
+[dependencies]
+disaster-mesh-protocol = { path = "../protocol" }
+
+# Web framework
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace", "request-id", "util"] }
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json"] }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+base64 = "0.22"
+
+# Auth & crypto
+jsonwebtoken = "9"
+argon2 = "0.5"
+sha2 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+rand = "0.8"
+
+# Observability
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Utilities
+dotenvy = "0.15"
+dashmap = "6"
+async-trait = "0.1"

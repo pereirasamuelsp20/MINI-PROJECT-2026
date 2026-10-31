@@ -1,0 +1,27 @@
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*~
+
+# Build artifacts
+target/
+node_modules/
+.next/
+out/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Design scrapers / temp reference exports
+figma-exports/
+figma-site-source/
+

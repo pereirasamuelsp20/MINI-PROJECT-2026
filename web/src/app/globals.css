@@ -1,0 +1,188 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-red-primary: #ff263d;
+  --color-red-glow: #f22535;
+  --color-dark-bg: #080606;
+}
+
+/* Base resets */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #080606;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Desktop Presentation Layout (Centered Phone Frame) */
+.relief-page {
+  background-color: #080606;
+  background-image:
+    linear-gradient(#ffffff05 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff05 1px, transparent 1px),
+    radial-gradient(circle at 16% 10%, #431012 0, transparent 34%),
+    radial-gradient(circle at 88% 90%, #25090d 0, transparent 36%);
+  background-size: 28px 28px, 28px 28px, auto, auto;
+  place-items: center;
+  min-height: 100svh;
+  padding: 24px;
+  display: grid;
+}
+
+/* Smartphone Frame */
+.app-frame {
+  background:
+    radial-gradient(circle at 2% 52%, rgba(242, 37, 53, 0.2), transparent 40%),
+    radial-gradient(circle at 100% 92%, rgba(242, 37, 53, 0.12), transparent 34%),
+    linear-gradient(145deg, #210908, #100909 48%, #030505);
+  border: 1px solid #54302c;
+  border-radius: 36px;
+  width: min(100%, 395px);
+  height: min(850px, 100svh - 48px);
+  min-height: 640px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 32px 90px #000000, inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Responsive behavior on actual mobile phones */
+@media (max-width: 520px) {
+  .relief-page {
+    padding: 0;
+    display: block;
+    background-image: none;
+  }
+  .app-frame {
+    border: 0;
+    border-radius: 0;
+    width: 100%;
+    height: 100svh;
+    min-height: 100svh;
+    box-shadow: none;
+  }
+}
+
+/* Buttons and Interactive Elements */
+.primary-action {
+  background: linear-gradient(135deg, #ff6754, #ff263d 49%, #bd1230);
+  border: 0;
+  box-shadow: 0 12px 30px rgba(207, 20, 45, 0.35);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 17px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 54px;
+  font-size: 11px;
+  font-weight: 800;
+  transition: transform 0.18s, filter 0.18s;
+  display: flex;
+}
+
+.primary-action:hover {
+  filter: brightness(1.1);
+}
+
+.primary-action:active {
+  transform: scale(0.98);
+}
+
+.secondary-action {
+  background: #151111d1;
+  border: 1px solid #60342f;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 17px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-height: 54px;
+  font-size: 11px;
+  font-weight: 800;
+  transition: transform 0.18s, background-color 0.18s;
+  display: flex;
+}
+
+.secondary-action:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Pulsing Status Dot */
+.pulse-dot {
+  background: #ff4d43;
+  border-radius: 999px;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  box-shadow: 0 0 0 5px rgba(255, 77, 67, 0.15), 0 0 14px #ff4d43;
+}
+
+/* Hide scrollbars for clean mobile appearance */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ============================================================
+   POWER SAVING MODE (User Requirement: True Black + Neon Green)
+   OLED power optimization shuts down black pixels completely.
+   ============================================================ */
+.power-saving-mode,
+html.power-saving-mode body {
+  background-color: #000000 !important;
+  background-image: none !important;
+  color: #00ff41 !important;
+}
+
+.power-saving-mode .relief-page {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+.power-saving-mode .app-frame {
+  background: #000000 !important;
+  border-color: #0d3815 !important;
+  box-shadow: 0 0 40px rgba(0, 255, 65, 0.1) !important;
+}
+
+.power-saving-mode .primary-action {
+  background: #000000 !important;
+  border: 2px solid #00ff41 !important;
+  color: #00ff41 !important;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.25) !important;
+}
+
+.power-saving-mode .secondary-action {
+  background: #000000 !important;
+  border: 1px solid #0d3815 !important;
+  color: #00ff41 !important;
+}
+
+.power-saving-mode .pulse-dot {
+  background: #00ff41 !important;
+  box-shadow: 0 0 10px #00ff41 !important;
+  animation: none !important;
+}
+
+/* Disable heavy CSS animations and transitions in power saving mode */
+.power-saving-mode * {
+  text-shadow: none !important;
+  animation-duration: 0.001s !important;
+}
+
