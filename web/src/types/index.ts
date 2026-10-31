@@ -80,5 +80,35 @@ export interface ReliefLocation {
   capacity?: string;
   supplies?: string[];
   distanceEstimate?: string;
+  city?: string;
+}
+
+export interface MeshContact {
+  id: string; // Unique Mesh ID, e.g. "MESH-7721"
+  name: string; // "Pooja Sharma", "Dr. Rohan Patel"
+  avatarColor: string; // Tailored color badge
+  area?: string; // e.g. "Dadar West"
+  statusNote?: string;
+  lastSeen: string; // e.g. "In BLE range · 1 hop"
+  unreadCount: number;
+}
+
+export interface DirectMessage {
+  id: string;
+  peerId: string; // Unique Mesh ID of recipient/sender
+  sender: 'me' | 'peer';
+  senderId: string;
+  senderName: string;
+  text: string;
+  timestamp: string;
+  status: 'sent' | 'delivered' | 'read';
+  hops: number;
+}
+
+export interface DevicePermissions {
+  locationGranted: boolean;
+  bluetoothGranted: boolean;
+  city: string;
+  userCoords: [number, number] | null;
 }
 

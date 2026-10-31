@@ -140,8 +140,8 @@ body {
 }
 
 /* ============================================================
-   POWER SAVING MODE (User Requirement: True Black + Neon Green)
-   OLED power optimization shuts down black pixels completely.
+   POWER SAVING MODE (Clean True Black + Crisp Green Text)
+   Zero green tint/glow across background. Pure #000000 for OLED battery saving.
    ============================================================ */
 .power-saving-mode,
 html.power-saving-mode body {
@@ -157,32 +157,34 @@ html.power-saving-mode body {
 
 .power-saving-mode .app-frame {
   background: #000000 !important;
-  border-color: #0d3815 !important;
-  box-shadow: 0 0 40px rgba(0, 255, 65, 0.1) !important;
+  border-color: #1f2937 !important;
+  box-shadow: none !important;
 }
 
 .power-saving-mode .primary-action {
   background: #000000 !important;
-  border: 2px solid #00ff41 !important;
+  border: 1.5px solid #00ff41 !important;
   color: #00ff41 !important;
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.25) !important;
+  box-shadow: none !important;
 }
 
 .power-saving-mode .secondary-action {
   background: #000000 !important;
-  border: 1px solid #0d3815 !important;
+  border: 1px solid #1f2937 !important;
   color: #00ff41 !important;
+  box-shadow: none !important;
 }
 
 .power-saving-mode .pulse-dot {
   background: #00ff41 !important;
-  box-shadow: 0 0 10px #00ff41 !important;
+  box-shadow: none !important;
   animation: none !important;
 }
 
 /* Disable heavy CSS animations and transitions in power saving mode */
 .power-saving-mode * {
   text-shadow: none !important;
+  box-shadow: none !important;
   animation-duration: 0.001s !important;
 }
 

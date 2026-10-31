@@ -165,7 +165,7 @@ export default function ReliefMeshApp() {
   return (
     <div className={`relief-page ${isPowerSaving ? 'power-saving-mode' : ''}`}>
       {/* Mobile Frame Container */}
-      <div className={`app-frame ${isPowerSaving ? '!bg-black !border-[#0d3815] shadow-[0_0_50px_rgba(0,255,65,0.1)]' : ''}`}>
+      <div className={`app-frame ${isPowerSaving ? '!bg-black !border-neutral-800' : ''}`}>
         {/* If no role is chosen, render Welcome Splash Screen */}
         {!role && <WelcomeScreen onSelectRole={(r) => setRole(r)} />}
 

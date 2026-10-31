@@ -3,62 +3,88 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { defaultLocations } from '@/lib/mockData';
+import { defaultLocations, MUMBAI_BOUNDS, MUMBAI_CENTER } from '@/lib/mockData';
 import { usePowerMode } from '@/lib/powerMode';
 
 interface MapInnerProps {
   userLocation?: [number, number];
   onSelectLocation?: (name: string, distance: string) => void;
+  safeRouteActive?: boolean;
 }
 
-export default function MapInner({ userLocation = [19.1136, 72.8697], onSelectLocation }: MapInnerProps) {
+export default function MapInner({
+  userLocation = MUMBAI_CENTER,
+  onSelectLocation,
+  safeRouteActive = true,
+}: MapInnerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const routeLayerRef = useRef<L.Polyline | null>(null);
   const { isPowerSaving } = usePowerMode();
 
-  useEffect(() => {
-    if (!mapContainerRef.current || mapInstanceRef.current) return;
+  // Validate if location is within Mumbai bounds, otherwise clamp to Mumbai center
+  const validCenter: [number, number] =
+    userLocation[0] >= 18.85 &&
+    userLocation[0] <= 19.35 &&
+    userLocation[1] >= 72.70 &&
+    userLocation[1] <= 73.15
+      ? userLocation
+      : MUMBAI_CENTER;
 
-    // Initialize Leaflet Map
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    // Destroy existing instance if any
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
+    // Initialize Leaflet Map locked strictly to Mumbai
     const map = L.map(mapContainerRef.current, {
-      center: userLocation,
-      zoom: 14,
+      center: validCenter,
+      zoom: 13,
+      minZoom: 11,
+      maxZoom: 18,
+      maxBounds: MUMBAI_BOUNDS,
+      maxBoundsViscosity: 1.0, // Hard boundary lock to Mumbai
       zoomControl: false,
       attributionControl: false,
     });
     mapInstanceRef.current = map;
 
-    // Use our Next.js tile proxy endpoint which handles OSM User-Agent and never gets blocked on mobile
-    // Fallback directly to CartoDB dark matter / OSM
-    const tileLayerUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? '/api/map-tile/{z}/{x}/{y}.png'
-      : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    // Use fast OSM / CartoDB tiles with multiple subdomains for maximum speed
+    const tileLayer = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      {
+        subdomains: 'abcd',
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+      }
+    ).addTo(map);
 
-    const tileLayer = L.tileLayer(tileLayerUrl, {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(map);
+    // Fast resize invalidation to eliminate rendering lag
+    const timer1 = setTimeout(() => map.invalidateSize(), 100);
+    const timer2 = setTimeout(() => map.invalidateSize(), 400);
 
-    // Attribution control (compact)
-    L.control.attribution({ position: 'bottomright', prefix: 'OSM' }).addTo(map);
-
-    // Zoom control in top right
+    // Compact Attribution & Zoom controls
+    L.control.attribution({ position: 'bottomright', prefix: 'OSM Mumbai' }).addTo(map);
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Custom HTML Icons
+    // Custom Marker Icons with readable labels
     const createCustomIcon = (type: 'camp' | 'safe_zone' | 'relay', isSelected: boolean = false) => {
       let bgColor = '#ff263d';
       let symbol = '🛡️';
-      let label = 'Camp';
+      let label = 'Relief Camp';
 
       if (type === 'safe_zone') {
         bgColor = '#00d294';
         symbol = '⛺';
-        label = 'Safe';
+        label = 'Safe Haven';
       } else if (type === 'relay') {
         bgColor = '#ff8b1a';
         symbol = '📶';
-        label = 'Relay';
+        label = 'Mesh Relay';
       }
 
       return L.divIcon({
@@ -73,15 +99,15 @@ export default function MapInner({ userLocation = [19.1136, 72.8697], onSelectLo
             <div style="
               background: ${bgColor};
               color: white;
-              padding: 4px 8px;
-              border-radius: 12px;
-              font-size: 10px;
+              padding: 5px 9px;
+              border-radius: 10px;
+              font-size: 11px;
               font-weight: 800;
-              box-shadow: 0 0 14px ${bgColor}88;
-              border: 1px solid rgba(255,255,255,0.4);
+              box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+              border: 1px solid rgba(255,255,255,0.6);
               display: flex;
               align-items: center;
-              gap: 4px;
+              gap: 5px;
               white-space: nowrap;
             ">
               <span>${symbol}</span>
@@ -90,123 +116,108 @@ export default function MapInner({ userLocation = [19.1136, 72.8697], onSelectLo
             <div style="
               width: 0;
               height: 0;
-              border-left: 5px solid transparent;
-              border-right: 5px solid transparent;
-              border-top: 6px solid ${bgColor};
+              border-left: 6px solid transparent;
+              border-right: 6px solid transparent;
+              border-top: 7px solid ${bgColor};
             "></div>
           </div>
         `,
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
       });
     };
 
-    // User Location Icon + Uncertainty Circle
+    // User Location Icon (Pulsing blue/red dot)
     const userMarkerIcon = L.divIcon({
       className: 'user-marker',
       html: `
         <div style="
-          width: 18px;
-          height: 18px;
+          width: 20px;
+          height: 20px;
           border-radius: 50%;
           background: #ffffff;
           border: 4px solid #ff263d;
-          box-shadow: 0 0 0 6px rgba(255, 38, 61, 0.3), 0 0 15px #ff263d;
+          box-shadow: 0 0 0 8px rgba(255, 38, 61, 0.25), 0 0 16px #ff263d;
           transform: translate(-50%, -50%);
         "></div>
       `,
-      iconSize: [18, 18],
-      iconAnchor: [9, 9],
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
     });
 
     // Add user marker
-    const userMarker = L.marker(userLocation, { icon: userMarkerIcon }).addTo(map);
-    userMarker.bindPopup('<b style="color:#000;">Your Approximate Area</b><br/><span style="color:#666;font-size:11px;">BLE estimate ±35m</span>');
+    const userMarker = L.marker(validCenter, { icon: userMarkerIcon }).addTo(map);
+    userMarker.bindPopup(`
+      <div style="color: #111; font-family: sans-serif; font-size: 13px; padding: 2px;">
+        <b style="font-size: 14px; color: #ff263d;">Your Location (Mumbai)</b>
+        <p style="margin: 4px 0 0; color: #444; font-size: 12px;">GPS / BLE estimate (±35m accuracy)</p>
+      </div>
+    `);
 
     // Add Uncertainty Circle (non-negotiable rule 8: uncertainty metadata)
-    L.circle(userLocation, {
+    L.circle(validCenter, {
       radius: 35,
       color: '#ff263d',
       fillColor: '#ff263d',
-      fillOpacity: 0.12,
-      weight: 1.5,
-      dashArray: '4, 4',
+      fillOpacity: 0.15,
+      weight: 2,
+      dashArray: '5, 5',
     }).addTo(map);
 
-    // Add Relief Camps, Safe Zones & Relays
+    // Add Mumbai Relief Locations
     defaultLocations.forEach((loc) => {
       const marker = L.marker([loc.latitude, loc.longitude], {
         icon: createCustomIcon(loc.type),
       }).addTo(map);
 
       marker.bindPopup(`
-        <div style="color: #000; font-family: sans-serif; font-size: 12px;">
-          <b style="font-size: 13px;">${loc.name}</b>
+        <div style="color: #111; font-family: sans-serif; font-size: 13px; line-height: 1.4; padding: 2px;">
+          <b style="font-size: 14px; color: #111;">${loc.name}</b>
           ${loc.capacity ? `<p style="margin: 4px 0 2px;"><b>Capacity:</b> ${loc.capacity}</p>` : ''}
           ${loc.supplies ? `<p style="margin: 2px 0;"><b>Supplies:</b> ${loc.supplies.join(', ')}</p>` : ''}
-          ${loc.distanceEstimate ? `<p style="margin: 2px 0; color: #888;">${loc.distanceEstimate}</p>` : ''}
+          ${loc.distanceEstimate ? `<p style="margin: 4px 0 0; color: #0284c7; font-weight: bold;">${loc.distanceEstimate}</p>` : ''}
         </div>
       `);
 
       marker.on('click', () => {
         if (onSelectLocation) {
-          onSelectLocation(loc.name, loc.distanceEstimate || 'Nearby');
+          onSelectLocation(loc.name, loc.distanceEstimate || 'Approx. 1.2 km');
         }
       });
     });
 
-    // Suggested Safe Route (Polyline avoiding hazard zones)
-    const nearestCamp = defaultLocations[0];
-    const safeRoutePoints: [number, number][] = [
-      userLocation,
-      [19.1142, 72.8710],
-      [19.1150, 72.8722],
-      [nearestCamp.latitude, nearestCamp.longitude],
-    ];
+    // Draw Safe Route Polyline (Mumbai Dadar/Bandra corridor)
+    if (safeRouteActive) {
+      const routePoints: [number, number][] = [
+        validCenter,
+        [19.0345, 72.8315],
+        [19.0434, 72.8258], // Bandra Reclamation Safe Haven
+      ];
 
-    L.polyline(safeRoutePoints, {
-      color: '#ff8b1a',
-      weight: 4,
-      dashArray: '8, 8',
-      opacity: 0.85,
-    }).addTo(map);
+      const polyline = L.polyline(routePoints, {
+        color: '#00d294',
+        weight: 5,
+        opacity: 0.85,
+        dashArray: '8, 8',
+      }).addTo(map);
+
+      routeLayerRef.current = polyline;
+    }
 
     return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [userLocation]);
+  }, [validCenter, isPowerSaving, safeRouteActive]);
 
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-2xl">
-      <div
-        ref={mapContainerRef}
-        className={`w-full h-full transition-all duration-300 ${
-          isPowerSaving ? 'filter invert hue-rotate-180 brightness-75 contrast-125' : ''
-        }`}
-        style={{ minHeight: '380px' }}
-      />
-      
-      {/* Map Legend Overlay */}
-      <div className={`absolute bottom-3 left-3 right-3 z-[1000] p-2.5 rounded-xl border backdrop-blur-md text-[9px] grid grid-cols-3 gap-1 pointer-events-none transition-colors ${
-        isPowerSaving 
-          ? 'bg-black/90 border-[#0d3815] text-[#00ff41]' 
-          : 'bg-black/80 border-white/10 text-stone-300'
-      }`}>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#ff263d] inline-block shadow-[0_0_6px_#ff263d]"></span>
-          <span>You (est.)</span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#00d294] inline-block"></span>
-          <span>Safe Zone</span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-0.5 bg-[#ff8b1a] inline-block"></span>
-          <span>Safe Route</span>
-        </span>
-      </div>
-    </div>
+    <div
+      ref={mapContainerRef}
+      className={`w-full h-full ${
+        isPowerSaving ? 'filter invert brightness-75 contrast-125' : ''
+      }`}
+    />
   );
 }
-

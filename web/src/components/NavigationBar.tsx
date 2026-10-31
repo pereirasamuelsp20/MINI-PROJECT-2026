@@ -32,9 +32,9 @@ export default function NavigationBar({ role, currentTab, onSelectTab }: Navigat
 
   return (
     <nav
-      className={`absolute inset-x-0 bottom-0 z-20 grid h-[74px] grid-cols-4 border-t px-2 pb-2 backdrop-blur-xl transition-colors ${
+      className={`absolute inset-x-0 bottom-0 z-20 grid h-[76px] grid-cols-4 border-t px-2 pb-2 backdrop-blur-xl transition-colors ${
         isPowerSaving
-          ? 'bg-black/95 border-[#0d3815]'
+          ? 'bg-black border-neutral-800'
           : 'bg-[#0d0909]/95 border-red-950/80'
       }`}
     >
@@ -53,26 +53,25 @@ export default function NavigationBar({ role, currentTab, onSelectTab }: Navigat
                   ? 'text-[#00ff41]'
                   : 'text-red-400 font-bold'
                 : isPowerSaving
-                ? 'text-[#15803d] hover:text-[#00ff41]'
-                : 'text-stone-500 hover:text-stone-300'
+                ? 'text-[#00ff41]/50 hover:text-[#00ff41]'
+                : 'text-stone-400 hover:text-stone-200'
             }`}
           >
             <div
               className={`p-1.5 rounded-xl transition-all ${
                 isActive
                   ? isPowerSaving
-                    ? 'bg-[#0d3815] shadow-[0_0_8px_#00ff41]'
+                    ? 'border border-[#00ff41] bg-black'
                     : 'bg-red-500/15 shadow-[0_0_12px_rgba(255,38,61,0.25)]'
                   : ''
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-5 h-5" />
             </div>
-            <span className="text-[9px] tracking-tight">{tab.label}</span>
+            <span className="text-xs tracking-tight">{tab.label}</span>
           </button>
         );
       })}
     </nav>
   );
 }
-

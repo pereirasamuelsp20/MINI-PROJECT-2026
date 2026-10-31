@@ -1,5 +1,5 @@
-import { Alert, Announcement, MeshChannel, MeshMessage, ReliefData, ResponderMessage } from '@/types';
-import { initialReliefData } from './mockData';
+import { Alert, Announcement, MeshChannel, MeshMessage, ReliefData, ResponderMessage, MeshContact, DirectMessage } from '@/types';
+import { initialReliefData, initialContacts, initialDirectMessages } from './mockData';
 
 const BACKEND_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
@@ -300,4 +300,92 @@ export async function sendResponderMessage(body: string, senderName: string = 'A
   saveStoredReliefData(current);
   return { ok: true };
 }
+
+// ─── WhatsApp-style Mesh Contacts & Direct Messages ───────────────
+
+let localContacts: MeshContact[] = [...initialContacts];
+let localDirectMessages: DirectMessage[] = [...initialDirectMessages];
+
+export function getStoredContacts(): MeshContact[] {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('disaster_mesh_contacts');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+  }
+  return localContacts;
+}
+
+export function saveStoredContacts(contacts: MeshContact[]) {
+  localContacts = contacts;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('disaster_mesh_contacts', JSON.stringify(contacts));
+    } catch {
+      // fallback
+    }
+  }
+}
+
+export function addContact(newContact: Omit<MeshContact, 'avatarColor' | 'lastSeen' | 'unreadCount'>): MeshContact {
+  const contacts = getStoredContacts();
+  const colors = ['bg-emerald-600', 'bg-blue-600', 'bg-purple-600', 'bg-amber-600', 'bg-rose-600', 'bg-teal-600'];
+  const randomColor = colors[Math.floor(Math.random() * colors.length)];
+  
+  const contact: MeshContact = {
+    ...newContact,
+    avatarColor: randomColor,
+    lastSeen: 'In BLE range · 1 hop away',
+    unreadCount: 0,
+  };
+
+  const updated = [contact, ...contacts.filter(c => c.id !== contact.id)];
+  saveStoredContacts(updated);
+  return contact;
+}
+
+export function getStoredDirectMessages(peerId?: string): DirectMessage[] {
+  let allMessages = localDirectMessages;
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('disaster_mesh_direct_messages');
+      if (saved) allMessages = JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+  }
+  if (peerId) {
+    return allMessages.filter(m => m.peerId === peerId);
+  }
+  return allMessages;
+}
+
+export function sendDirectMessage(peerId: string, text: string): DirectMessage {
+  const allMessages = getStoredDirectMessages();
+  const newMsg: DirectMessage = {
+    id: `dm-${Date.now()}`,
+    peerId,
+    sender: 'me',
+    senderId: 'MESH-ME-01',
+    senderName: 'Me',
+    text: text.trim(),
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    status: 'delivered',
+    hops: 1,
+  };
+
+  const updated = [...allMessages, newMsg];
+  localDirectMessages = updated;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('disaster_mesh_direct_messages', JSON.stringify(updated));
+    } catch {
+      // fallback
+    }
+  }
+  return newMsg;
+}
+
 
