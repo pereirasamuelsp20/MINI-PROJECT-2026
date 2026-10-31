@@ -182,3 +182,4 @@ export default function PermissionModal({ isOpen, onComplete }: PermissionModalP
     </div>
   );
 }
+

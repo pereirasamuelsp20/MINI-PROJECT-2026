@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserRole, ReliefData, AlertNeed, AnnouncementSeverity } from '@/types';
+import { UserRole, ReliefData, AlertNeed, AnnouncementSeverity, Alert } from '@/types';
 import { initialReliefData } from '@/lib/mockData';
 import {
   fetchReliefData,
@@ -21,6 +21,7 @@ import AppHeader from '@/components/AppHeader';
 import NavigationBar from '@/components/NavigationBar';
 import CitizenHome from '@/components/CitizenHome';
 import MapView from '@/components/MapView';
+import { MapTarget } from '@/components/MapInner';
 import BLEChatsView from '@/components/BLEChatsView';
 import ResponderDashboard from '@/components/ResponderDashboard';
 import LiveSOSFeed from '@/components/LiveSOSFeed';
@@ -45,6 +46,9 @@ export default function ReliefMeshApp() {
   const [reliefData, setReliefData] = useState<ReliefData>(initialReliefData);
   const [syncing, setSyncing] = useState<boolean>(false);
   const [toast, setToast] = useState<string>('');
+
+  // Active navigation target for Responder POV
+  const [activeNavTarget, setActiveNavTarget] = useState<MapTarget | null>(null);
 
   // Modals
   const [showSOS, setShowSOS] = useState<boolean>(false);
@@ -81,7 +85,22 @@ export default function ReliefMeshApp() {
     setRole(null);
     setCitizenTab('home');
     setResponderTab('dashboard');
+    setActiveNavTarget(null);
     showNotification('Session ended. Stored data preserved locally.');
+  };
+
+  const handleNavigateToAlert = (alert: Alert) => {
+    setActiveNavTarget({
+      id: alert.id,
+      name: alert.citizenName,
+      latitude: alert.latitude ?? 19.0544,
+      longitude: alert.longitude ?? 72.8402,
+      need: alert.need,
+      details: alert.details,
+      priority: alert.priority,
+    });
+    setResponderTab('map');
+    showNotification(`Tactical navigation plotted to ${alert.citizenName} (${alert.need})`);
   };
 
   const handleSendSOS = async (payload: { need: AlertNeed; details: string }) => {
@@ -182,7 +201,7 @@ export default function ReliefMeshApp() {
               />
             )}
 
-            {citizenTab === 'map' && <MapView />}
+            {citizenTab === 'map' && <MapView isResponder={false} />}
 
             {citizenTab === 'chats' && (
               <BLEChatsView
@@ -241,6 +260,15 @@ export default function ReliefMeshApp() {
                 onNavigate={(t) => setResponderTab(t)}
                 onOpenBroadcast={() => setShowBroadcast(true)}
                 onVerifyAlert={handleVerifyAlert}
+                onNavigateToAlert={handleNavigateToAlert}
+              />
+            )}
+
+            {responderTab === 'map' && (
+              <MapView
+                isResponder={true}
+                activeTarget={activeNavTarget}
+                onClearTarget={() => setActiveNavTarget(null)}
               />
             )}
 
@@ -249,6 +277,7 @@ export default function ReliefMeshApp() {
                 data={reliefData}
                 onVerify={handleVerifyAlert}
                 onResolve={handleResolveAlert}
+                onNavigateToAlert={handleNavigateToAlert}
               />
             )}
 
@@ -304,4 +333,3 @@ export default function ReliefMeshApp() {
     </div>
   );
 }
-

@@ -23,16 +23,18 @@ export default function NavigationBar({ role, currentTab, onSelectTab }: Navigat
 
   const responderTabs = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'map', label: 'MapNav', icon: Map },
     { id: 'sos', label: 'SOS alerts', icon: AlertCircle },
     { id: 'inbox', label: 'Inbox', icon: Inbox },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 
   const tabs = role === 'citizen' ? citizenTabs : responderTabs;
+  const gridClass = role === 'citizen' ? 'grid-cols-4' : 'grid-cols-5';
 
   return (
     <nav
-      className={`absolute inset-x-0 bottom-0 z-20 grid h-[76px] grid-cols-4 border-t px-2 pb-2 backdrop-blur-xl transition-colors ${
+      className={`absolute inset-x-0 bottom-0 z-20 grid h-[76px] ${gridClass} border-t px-1 pb-2 backdrop-blur-xl transition-colors ${
         isPowerSaving
           ? 'bg-black border-neutral-800'
           : 'bg-[#0d0909]/95 border-red-950/80'
@@ -68,7 +70,7 @@ export default function NavigationBar({ role, currentTab, onSelectTab }: Navigat
             >
               <Icon className="w-5 h-5" />
             </div>
-            <span className="text-xs tracking-tight">{tab.label}</span>
+            <span className="text-[11px] tracking-tight truncate">{tab.label}</span>
           </button>
         );
       })}

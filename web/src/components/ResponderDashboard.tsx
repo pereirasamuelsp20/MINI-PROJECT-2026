@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Megaphone, AlertCircle, Radio, Users, CheckCircle, Clock } from 'lucide-react';
-import { ReliefData } from '@/types';
+import { Megaphone, AlertCircle, Radio, Users, CheckCircle, Clock, Map, Navigation } from 'lucide-react';
+import { ReliefData, Alert } from '@/types';
 import { usePowerMode } from '@/lib/powerMode';
 
 interface ResponderDashboardProps {
@@ -10,6 +10,7 @@ interface ResponderDashboardProps {
   onNavigate: (tab: string) => void;
   onOpenBroadcast: () => void;
   onVerifyAlert?: (id: string) => void;
+  onNavigateToAlert?: (alert: Alert) => void;
 }
 
 export default function ResponderDashboard({
@@ -17,6 +18,7 @@ export default function ResponderDashboard({
   onNavigate,
   onOpenBroadcast,
   onVerifyAlert,
+  onNavigateToAlert,
 }: ResponderDashboardProps) {
   const { isPowerSaving } = usePowerMode();
   const unverifiedCount = data.alerts.filter((a) => a.status === 'new').length;
@@ -79,19 +81,32 @@ export default function ResponderDashboard({
         </div>
       </div>
 
-      {/* Broadcast Announcement Primary Action Button */}
-      <div className="px-5 mb-4">
+      {/* Primary Action Buttons: Broadcast & Tactical Map */}
+      <div className="px-5 mb-4 grid grid-cols-2 gap-2.5">
         <button
           type="button"
           onClick={onOpenBroadcast}
-          className={`w-full py-4 px-5 rounded-2xl flex items-center justify-center gap-2 text-sm font-extrabold uppercase tracking-wider transition-all ${
+          className={`py-3.5 px-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-xs font-extrabold uppercase tracking-wider transition-all text-center ${
             isPowerSaving
               ? 'border-2 border-[#00ff41] bg-black text-[#00ff41]'
               : 'bg-gradient-to-r from-[#ff6754] via-[#ff263d] to-[#bd1230] text-white shadow-[0_12px_30px_rgba(207,20,45,0.35)] hover:brightness-110'
           }`}
         >
-          <Megaphone className="w-5 h-5" />
-          Broadcast Civil Safety Alert
+          <Megaphone className="w-4 h-4" />
+          <span>Broadcast Alert</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onNavigate('map')}
+          className={`py-3.5 px-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-xs font-extrabold uppercase tracking-wider transition-all text-center border ${
+            isPowerSaving
+              ? 'border-2 border-[#00ff41] bg-black text-[#00ff41]'
+              : 'border-emerald-600/60 bg-emerald-950/30 text-emerald-300 shadow-[0_8px_20px_rgba(16,185,129,0.2)] hover:bg-emerald-950/50'
+          }`}
+        >
+          <Map className="w-4 h-4 text-emerald-400" />
+          <span>Tactical MapNav</span>
         </button>
       </div>
 
@@ -215,28 +230,35 @@ export default function ResponderDashboard({
                     <span className={isPowerSaving ? 'text-neutral-400' : 'text-stone-400'}>
                       {alert.citizenName} · {alert.area}
                     </span>
-                    {alert.status === 'new' && onVerifyAlert && (
-                      <button
-                        type="button"
-                        onClick={() => onVerifyAlert(alert.id)}
-                        className={`font-bold uppercase tracking-wider px-3 py-1 rounded-lg text-xs ${
-                          isPowerSaving
-                            ? 'bg-[#00ff41] text-black'
-                            : 'bg-red-600 text-white hover:bg-red-500'
-                        }`}
-                      >
-                        Verify
-                      </button>
-                    )}
-                    {alert.status === 'verified' && (
-                      <span
-                        className={`font-bold uppercase text-xs ${
-                          isPowerSaving ? 'text-[#00ff41]' : 'text-emerald-400'
-                        }`}
-                      >
-                        ✓ Verified
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {onNavigateToAlert && (
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToAlert(alert)}
+                          className={`font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg text-[11px] flex items-center gap-1 ${
+                            isPowerSaving
+                              ? 'border border-[#00ff41] text-[#00ff41]'
+                              : 'bg-red-600 text-white hover:bg-red-500'
+                          }`}
+                        >
+                          <Navigation className="w-3 h-3" />
+                          Nav
+                        </button>
+                      )}
+                      {alert.status === 'new' && onVerifyAlert && (
+                        <button
+                          type="button"
+                          onClick={() => onVerifyAlert(alert.id)}
+                          className={`font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg text-[11px] ${
+                            isPowerSaving
+                              ? 'bg-[#00ff41] text-black'
+                              : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                          }`}
+                        >
+                          Verify
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,17 +1,23 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AlertCircle, ShieldCheck, Check } from 'lucide-react';
-import { ReliefData } from '@/types';
+import { AlertCircle, ShieldCheck, Check, Navigation, MapPin } from 'lucide-react';
+import { ReliefData, Alert } from '@/types';
 import { usePowerMode } from '@/lib/powerMode';
 
 interface LiveSOSFeedProps {
   data: ReliefData;
   onVerify: (id: string) => void;
   onResolve: (id: string) => void;
+  onNavigateToAlert?: (alert: Alert) => void;
 }
 
-export default function LiveSOSFeed({ data, onVerify, onResolve }: LiveSOSFeedProps) {
+export default function LiveSOSFeed({
+  data,
+  onVerify,
+  onResolve,
+  onNavigateToAlert,
+}: LiveSOSFeedProps) {
   const { isPowerSaving } = usePowerMode();
   const [filter, setFilter] = useState<string>('all');
 
@@ -139,7 +145,8 @@ export default function LiveSOSFeed({ data, onVerify, onResolve }: LiveSOSFeedPr
                       : 'border-white/5 text-stone-400'
                   }`}
                 >
-                  <span className="truncate">
+                  <span className="truncate flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-red-400 flex-none" />
                     {alert.citizenName} · {alert.area}
                   </span>
                   <span>
@@ -150,34 +157,48 @@ export default function LiveSOSFeed({ data, onVerify, onResolve }: LiveSOSFeedPr
                   </span>
                 </div>
 
-                {/* Operator Actions */}
-                <div className="mt-3.5 flex items-center gap-2">
+                {/* Operator Actions & Real-Time Navigation */}
+                <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                  {/* Respond & Navigate to Victim on Tactical Map */}
+                  <button
+                    type="button"
+                    onClick={() => onNavigateToAlert && onNavigateToAlert(alert)}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+                      isPowerSaving
+                        ? 'border border-[#00ff41] bg-black text-[#00ff41] hover:bg-[#00ff41]/15'
+                        : 'bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-md shadow-red-950/40 hover:brightness-110'
+                    }`}
+                  >
+                    <Navigation className="w-3.5 h-3.5 text-white" />
+                    Respond & Navigate
+                  </button>
+
                   {alert.status === 'new' && (
                     <button
                       type="button"
                       onClick={() => onVerify(alert.id)}
-                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+                      className={`py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
                         isPowerSaving
                           ? 'border border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41] hover:text-black'
                           : 'bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-600/50'
                       }`}
                     >
                       <ShieldCheck className="w-4 h-4" />
-                      Verify Incident
+                      Verify
                     </button>
                   )}
                   {alert.status !== 'resolved' && (
                     <button
                       type="button"
                       onClick={() => onResolve(alert.id)}
-                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+                      className={`py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
                         isPowerSaving
                           ? 'border border-neutral-800 text-neutral-400 hover:text-[#00ff41]'
                           : 'bg-white/5 border border-white/10 text-stone-300 hover:bg-white/10'
                       }`}
                     >
                       <Check className="w-4 h-4" />
-                      Mark Resolved
+                      Resolve
                     </button>
                   )}
                 </div>
