@@ -10,6 +10,19 @@
   --color-dark-bg: #080606;
 }
 
+/* ECO Mode Design Tokens */
+.power-saving-mode {
+  --eco-bg: #000000;
+  --eco-glass: rgba(0, 255, 65, 0.06);
+  --eco-glass-border: rgba(0, 255, 65, 0.15);
+  --eco-glass-hover: rgba(0, 255, 65, 0.12);
+  --eco-text: #00ff41;
+  --eco-text-muted: rgba(0, 255, 65, 0.65);
+  --eco-text-dim: rgba(0, 255, 65, 0.38);
+  --eco-accent: #00ff41;
+  --eco-accent-soft: rgba(0, 255, 65, 0.20);
+}
+
 /* Base resets */
 * {
   box-sizing: border-box;
@@ -140,14 +153,18 @@ body {
 }
 
 /* ============================================================
-   POWER SAVING MODE (Clean True Black + Crisp Green Text)
-   Zero green tint/glow across background. Pure #000000 for OLED battery saving.
+   ECO / POWER SAVING MODE
+   Pure #000000 OLED background. Green-tinted glassmorphism cards
+   for visual separation. Maximum battery savings.
    ============================================================ */
+
+/* Base — pure black background, strip gradients */
 .power-saving-mode,
 html.power-saving-mode body {
   background-color: #000000 !important;
   background-image: none !important;
-  color: #00ff41 !important;
+  color: var(--eco-text) !important;
+  color-scheme: dark;
 }
 
 .power-saving-mode .relief-page {
@@ -157,34 +174,84 @@ html.power-saving-mode body {
 
 .power-saving-mode .app-frame {
   background: #000000 !important;
-  border-color: #1f2937 !important;
+  border-color: var(--eco-glass-border) !important;
   box-shadow: none !important;
 }
 
+/* Action Buttons — green glass fill */
 .power-saving-mode .primary-action {
-  background: #000000 !important;
-  border: 1.5px solid #00ff41 !important;
-  color: #00ff41 !important;
+  background: var(--eco-glass) !important;
+  border: 1.5px solid var(--eco-accent) !important;
+  color: var(--eco-accent) !important;
   box-shadow: none !important;
 }
 
 .power-saving-mode .secondary-action {
-  background: #000000 !important;
-  border: 1px solid #1f2937 !important;
-  color: #00ff41 !important;
+  background: var(--eco-glass) !important;
+  border: 1px solid var(--eco-glass-border) !important;
+  color: var(--eco-accent) !important;
   box-shadow: none !important;
 }
 
+/* Status dot — green, no glow */
 .power-saving-mode .pulse-dot {
-  background: #00ff41 !important;
+  background: var(--eco-accent) !important;
   box-shadow: none !important;
   animation: none !important;
 }
 
-/* Disable heavy CSS animations and transitions in power saving mode */
-.power-saving-mode * {
+/* ---- Battery Savings ---- */
+/* Kill ALL animations, transitions, transforms and GPU-heavy effects */
+.power-saving-mode *,
+.power-saving-mode *::before,
+.power-saving-mode *::after {
+  animation-duration: 0.001s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
   text-shadow: none !important;
   box-shadow: none !important;
-  animation-duration: 0.001s !important;
+  will-change: auto !important;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Remove backdrop-blur on non-essential elements to save GPU */
+.power-saving-mode .backdrop-blur-xl,
+.power-saving-mode .backdrop-blur-lg,
+.power-saving-mode .backdrop-blur-md {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Keep only light blur on eco-glass components */
+.power-saving-mode .eco-glass {
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Reduce image rendering quality for battery */
+.power-saving-mode img,
+.power-saving-mode canvas {
+  image-rendering: optimizeSpeed;
+}
+
+/* Disable hover effects on mobile touch to save paints */
+@media (hover: none) {
+  .power-saving-mode *:hover {
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
+/* Scrollbar in ECO */
+.power-saving-mode ::-webkit-scrollbar {
+  width: 4px;
+}
+.power-saving-mode ::-webkit-scrollbar-track {
+  background: #000000;
+}
+.power-saving-mode ::-webkit-scrollbar-thumb {
+  background: var(--eco-glass-border);
+  border-radius: 2px;
+}

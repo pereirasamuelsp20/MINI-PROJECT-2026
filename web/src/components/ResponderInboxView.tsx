@@ -32,7 +32,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
         </h1>
         <p
           className={`mt-0.5 text-xs ${
-            isPowerSaving ? 'text-[#00ff41]/70' : 'text-stone-300'
+            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
           }`}
         >
           Messages and localized updates from Mumbai residents
@@ -46,7 +46,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
             key={msg.id}
             className={`p-4 rounded-3xl border transition-colors ${
               isPowerSaving
-                ? 'bg-black border-neutral-800 text-[#00ff41]'
+                ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
                 : 'bg-white/5 border-red-950/80 text-white'
             }`}
           >
@@ -54,7 +54,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
               <span
                 className={`w-10 h-10 rounded-full flex items-center justify-center flex-none ${
                   isPowerSaving
-                    ? 'border border-[#00ff41] text-[#00ff41] bg-black'
+                    ? 'border border-[rgba(0,255,65,0.3)] text-[#00ff41] bg-[rgba(0,255,65,0.1)]'
                     : 'bg-red-500/15 text-red-400'
                 }`}
               >
@@ -64,7 +64,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
                 <b className="block text-sm font-bold truncate">{msg.senderName}</b>
                 <small
                   className={`text-xs block mt-0.5 ${
-                    isPowerSaving ? 'text-neutral-400' : 'text-stone-400'
+                    isPowerSaving ? 'text-[rgba(0,255,65,0.65)]' : 'text-stone-400'
                   }`}
                 >
                   {msg.area} ·{' '}
@@ -78,7 +78,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
                 <span
                   className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded-full ${
                     isPowerSaving
-                      ? 'border border-[#00ff41] text-[#00ff41]'
+                      ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.12)] text-[#00ff41]'
                       : 'bg-red-500/20 text-red-400'
                   }`}
                 >
@@ -90,7 +90,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
             <p
               className={`mt-3 p-3.5 rounded-2xl text-xs leading-relaxed border ${
                 isPowerSaving
-                  ? 'bg-black border-neutral-800 text-[#00ff41]'
+                  ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.15)] text-[rgba(0,255,65,0.9)]'
                   : 'bg-black/30 border border-white/5 text-stone-200'
               }`}
             >

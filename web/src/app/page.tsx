@@ -37,7 +37,7 @@ import MessageResponderModal from '@/components/MessageResponderModal';
 import { Radio, X } from 'lucide-react';
 
 export default function ReliefMeshApp() {
-  const { isPowerSaving } = usePowerMode();
+  const { isPowerSaving, ecoConfig } = usePowerMode();
 
   // App State
   const [role, setRole] = useState<UserRole | null>(null);
@@ -73,12 +73,13 @@ export default function ReliefMeshApp() {
     }
   }, []);
 
-  // Sync on startup and poll every 15s
+  // Sync on startup and poll according to power mode (60s in ECO vs 15s in Normal)
   useEffect(() => {
     refreshData();
-    const timer = window.setInterval(refreshData, 15000);
+    const interval = ecoConfig?.pollIntervalMs || 15000;
+    const timer = window.setInterval(refreshData, interval);
     return () => window.clearInterval(timer);
-  }, [refreshData]);
+  }, [refreshData, ecoConfig?.pollIntervalMs]);
 
   // Handlers
   const handleLogout = () => {
@@ -184,7 +185,7 @@ export default function ReliefMeshApp() {
   return (
     <div className={`relief-page ${isPowerSaving ? 'power-saving-mode' : ''}`}>
       {/* Mobile Frame Container */}
-      <div className={`app-frame ${isPowerSaving ? '!bg-black !border-neutral-800' : ''}`}>
+      <div className={`app-frame ${isPowerSaving ? '!bg-black !border-[rgba(0,255,65,0.2)]' : ''}`}>
         {/* If no role is chosen, render Welcome Splash Screen */}
         {!role && <WelcomeScreen onSelectRole={(r) => setRole(r)} />}
 
@@ -315,7 +316,7 @@ export default function ReliefMeshApp() {
           role="status"
           className={`fixed bottom-6 left-1/2 z-50 flex w-[min(350px,calc(100%-2rem))] -translate-x-1/2 items-center gap-2.5 rounded-2xl p-3 text-[10px] shadow-2xl transition-all border ${
             isPowerSaving
-              ? 'bg-black border-[#00ff41] text-[#00ff41] shadow-[0_0_20px_#00ff41]'
+              ? 'bg-black border-[rgba(0,255,65,0.35)] text-[#00ff41] shadow-[0_0_20px_rgba(0,255,65,0.2)] backdrop-blur-sm'
               : 'bg-[#211515] border-red-900 text-stone-200'
           }`}
         >

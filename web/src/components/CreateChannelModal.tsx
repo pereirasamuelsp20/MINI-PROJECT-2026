@@ -38,7 +38,7 @@ export default function CreateChannelModal({ onClose, onSubmit }: CreateChannelM
       <div
         className={`w-full rounded-3xl border p-5 transition-colors ${
           isPowerSaving
-            ? 'bg-black border-neutral-800 text-[#00ff41]'
+            ? 'bg-black border-[rgba(0,255,65,0.25)] text-[#00ff41]'
             : 'bg-[#1a1111] border-red-900 text-white'
         }`}
       >
@@ -58,7 +58,7 @@ export default function CreateChannelModal({ onClose, onSubmit }: CreateChannelM
             onClick={onClose}
             className={`p-1.5 rounded-full ${
               isPowerSaving
-                ? 'text-neutral-400 hover:text-[#00ff41]'
+                ? 'text-[rgba(0,255,65,0.6)] hover:text-[#00ff41]'
                 : 'text-stone-400 hover:text-white'
             }`}
           >
@@ -76,10 +76,10 @@ export default function CreateChannelModal({ onClose, onSubmit }: CreateChannelM
               className={`p-3.5 rounded-xl border text-xs capitalize font-bold transition-all ${
                 channelType === type
                   ? isPowerSaving
-                    ? 'border-[#00ff41] bg-black text-[#00ff41]'
+                    ? 'border-[#00ff41] bg-[rgba(0,255,65,0.14)] text-[#00ff41]'
                     : 'border-red-400 bg-red-500/20 text-white'
                   : isPowerSaving
-                  ? 'border-neutral-800 text-neutral-400'
+                  ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.6)]'
                   : 'border-red-950 text-stone-400'
               }`}
             >
@@ -96,7 +96,7 @@ export default function CreateChannelModal({ onClose, onSubmit }: CreateChannelM
           placeholder="Channel Name (e.g. Bandra Volunteers)"
           className={`h-12 w-full rounded-xl px-4 text-sm outline-none mb-3 transition-colors border ${
             isPowerSaving
-              ? 'bg-black border-neutral-800 text-[#00ff41] placeholder-[#00ff41]/40 focus:border-[#00ff41]'
+              ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)] focus:border-[#00ff41]'
               : 'bg-black/40 border-red-950 text-white placeholder-stone-500 focus:border-red-500'
           }`}
         />
@@ -108,7 +108,7 @@ export default function CreateChannelModal({ onClose, onSubmit }: CreateChannelM
           rows={3}
           className={`w-full resize-none rounded-xl p-3 text-sm outline-none transition-colors mb-4 border ${
             isPowerSaving
-              ? 'bg-black border-neutral-800 text-[#00ff41] placeholder-[#00ff41]/40 focus:border-[#00ff41]'
+              ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)] focus:border-[#00ff41]'
               : 'bg-black/40 border-red-950 text-white placeholder-stone-500 focus:border-red-500'
           }`}
         />
@@ -119,7 +119,7 @@ export default function CreateChannelModal({ onClose, onSubmit }: CreateChannelM
           onClick={handleSubmit}
           className={`w-full py-4 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all ${
             isPowerSaving
-              ? 'border-2 border-[#00ff41] bg-black text-[#00ff41]'
+              ? 'border-2 border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.25)]'
               : 'bg-gradient-to-r from-[#ff6754] via-[#ff263d] to-[#bd1230] text-white shadow-lg'
           }`}
         >

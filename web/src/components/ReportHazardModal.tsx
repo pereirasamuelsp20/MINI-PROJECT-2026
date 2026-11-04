@@ -56,17 +56,17 @@ export default function ReportHazardModal({
       <div
         className={`w-full max-w-sm rounded-3xl border p-5 shadow-2xl transition-all my-auto ${
           isPowerSaving
-            ? 'bg-black border-neutral-800 text-[#00ff41]'
+            ? 'bg-black border-[rgba(0,255,65,0.25)] text-[#00ff41]'
             : 'bg-[#150d0d] border-red-900/80 text-white'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <div className={`flex items-center justify-between pb-3 border-b ${isPowerSaving ? 'border-[rgba(0,255,65,0.15)]' : 'border-white/10'}`}>
           <div className="flex items-center gap-2.5">
             <div
               className={`p-2 rounded-xl ${
                 isPowerSaving
-                  ? 'border border-[#00ff41] bg-black text-[#00ff41]'
+                  ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
                   : 'bg-red-500/20 text-red-400'
               }`}
             >
@@ -78,7 +78,7 @@ export default function ReportHazardModal({
               </h3>
               <p
                 className={`text-[11px] ${
-                  isPowerSaving ? 'text-[#00ff41]/70' : 'text-stone-400'
+                  isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
                 }`}
               >
                 Broadcasts instantly via BLE to all responders & peers
@@ -90,7 +90,7 @@ export default function ReportHazardModal({
             onClick={onClose}
             className={`p-1.5 rounded-lg ${
               isPowerSaving
-                ? 'text-neutral-400 hover:text-[#00ff41]'
+                ? 'text-[rgba(0,255,65,0.6)] hover:text-[#00ff41]'
                 : 'text-stone-400 hover:text-white'
             }`}
           >
@@ -103,7 +103,7 @@ export default function ReportHazardModal({
           <div>
             <label
               className={`block text-xs font-bold uppercase tracking-wider mb-2 ${
-                isPowerSaving ? 'text-[#00ff41]/80' : 'text-stone-300'
+                isPowerSaving ? 'text-[rgba(0,255,65,0.75)]' : 'text-stone-300'
               }`}
             >
               Select Obstruction Type
@@ -120,10 +120,10 @@ export default function ReportHazardModal({
                     className={`p-2.5 rounded-2xl border text-left flex items-center gap-2 text-xs transition-all ${
                       isSelected
                         ? isPowerSaving
-                          ? 'border-[#00ff41] bg-black text-[#00ff41]'
+                          ? 'border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] font-bold'
                           : 'border-red-500 bg-red-600/20 text-white font-bold shadow-[0_0_12px_rgba(255,38,61,0.25)]'
                         : isPowerSaving
-                        ? 'border-neutral-800 bg-black text-neutral-400'
+                        ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.65)]'
                         : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/10'
                     }`}
                   >
@@ -139,7 +139,7 @@ export default function ReportHazardModal({
           <div>
             <label
               className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
-                isPowerSaving ? 'text-[#00ff41]/80' : 'text-stone-300'
+                isPowerSaving ? 'text-[rgba(0,255,65,0.75)]' : 'text-stone-300'
               }`}
             >
               Severity Level
@@ -158,7 +158,7 @@ export default function ReportHazardModal({
                         ? 'bg-amber-600 border-amber-500 text-white'
                         : 'bg-emerald-600 border-emerald-500 text-white'
                       : isPowerSaving
-                      ? 'border-neutral-800 bg-black text-neutral-500'
+                      ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.5)]'
                       : 'border-white/10 bg-white/5 text-stone-400'
                   }`}
                 >
@@ -172,7 +172,7 @@ export default function ReportHazardModal({
           <div>
             <label
               className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
-                isPowerSaving ? 'text-[#00ff41]/80' : 'text-stone-300'
+                isPowerSaving ? 'text-[rgba(0,255,65,0.75)]' : 'text-stone-300'
               }`}
             >
               Location Note (Landmarks / Depth)
@@ -184,7 +184,7 @@ export default function ReportHazardModal({
               rows={2}
               className={`w-full rounded-2xl border p-3 text-xs outline-none transition-colors ${
                 isPowerSaving
-                  ? 'bg-black border-neutral-800 text-[#00ff41] placeholder-[#00ff41]/40 focus:border-[#00ff41]'
+                  ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)] focus:border-[#00ff41]'
                   : 'bg-black/40 border-red-950 text-white placeholder-stone-600 focus:border-red-500'
               }`}
             />
@@ -194,7 +194,7 @@ export default function ReportHazardModal({
           <div
             className={`flex items-center gap-2 p-2.5 rounded-xl border text-[11px] ${
               isPowerSaving
-                ? 'border-neutral-800 bg-black text-[#00ff41]/70'
+                ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.7)]'
                 : 'border-white/5 bg-white/5 text-stone-300'
             }`}
           >
@@ -208,7 +208,7 @@ export default function ReportHazardModal({
           <div
             className={`flex items-center gap-2 p-2.5 rounded-xl border text-[11px] ${
               isPowerSaving
-                ? 'border-neutral-800 bg-black text-[#00ff41]/80'
+                ? 'border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.85)]'
                 : 'border-emerald-950/60 bg-emerald-950/20 text-emerald-300'
             }`}
           >
@@ -223,7 +223,7 @@ export default function ReportHazardModal({
               disabled={submitting}
               className={`w-full py-3.5 px-4 rounded-2xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
                 isPowerSaving
-                  ? 'border-2 border-[#00ff41] bg-black text-[#00ff41]'
+                  ? 'border-2 border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.25)]'
                   : 'bg-gradient-to-r from-[#ff5e4f] via-[#ff263d] to-[#bd1230] text-white shadow-lg shadow-red-950/40 hover:brightness-110'
               }`}
             >

@@ -71,3 +71,4 @@ export const HAZARD_INFO: Record<
     description: 'Stampede risk or congested bottle-neck passage',
   },
 };
+

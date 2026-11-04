@@ -220,3 +220,4 @@ export function mergeRemoteHazards(incoming: HazardMarker[]): void {
 
   saveHazardsToStorage(Array.from(currentMap.values()));
 }
+

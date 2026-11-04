@@ -145,7 +145,7 @@ export default function BLEChatsView({
         <header
           className={`flex items-center gap-3 border-b px-4 py-3 transition-colors ${
             isPowerSaving
-              ? 'bg-black border-neutral-800'
+              ? 'bg-black border-[rgba(0,255,65,0.18)]'
               : 'bg-[#140e0e] border-red-950/70'
           }`}
         >
@@ -178,7 +178,7 @@ export default function BLEChatsView({
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
                   isPowerSaving
-                    ? 'border border-[#00ff41] text-[#00ff41]'
+                    ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
                     : 'bg-white/10 text-stone-300'
                 }`}
               >
@@ -187,7 +187,7 @@ export default function BLEChatsView({
             </div>
             <p
               className={`text-xs flex items-center gap-1.5 ${
-                isPowerSaving ? 'text-[#00ff41]/70' : 'text-emerald-400'
+                isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-emerald-400'
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
@@ -206,7 +206,7 @@ export default function BLEChatsView({
           <div
             className={`mx-auto w-fit max-w-[90%] text-center rounded-2xl px-3.5 py-2 text-xs border ${
               isPowerSaving
-                ? 'bg-black border-neutral-800 text-[#00ff41]/80'
+                ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] text-[rgba(0,255,65,0.85)]'
                 : 'bg-black/50 border-white/5 text-stone-400'
             }`}
           >
@@ -224,10 +224,10 @@ export default function BLEChatsView({
                   className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow text-sm leading-relaxed ${
                     isMe
                       ? isPowerSaving
-                        ? 'border border-[#00ff41] bg-black text-[#00ff41] rounded-br-sm'
+                        ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.12)] text-[#00ff41] rounded-br-sm'
                         : 'bg-gradient-to-r from-red-600 to-red-700 text-white rounded-br-sm'
                       : isPowerSaving
-                      ? 'border border-neutral-800 bg-neutral-950 text-[#00ff41] rounded-bl-sm'
+                      ? 'border border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.05)] text-[#00ff41] rounded-bl-sm'
                       : 'bg-[#1e1515] text-stone-200 border border-white/5 rounded-bl-sm'
                   }`}
                 >
@@ -236,10 +236,10 @@ export default function BLEChatsView({
                     className={`flex items-center justify-end gap-1.5 text-[10px] mt-1 ${
                       isMe
                         ? isPowerSaving
-                          ? 'text-[#00ff41]/70'
+                          ? 'text-[rgba(0,255,65,0.7)]'
                           : 'text-red-200'
                         : isPowerSaving
-                        ? 'text-neutral-500'
+                        ? 'text-[rgba(0,255,65,0.5)]'
                         : 'text-stone-400'
                     }`}
                   >
@@ -255,7 +255,7 @@ export default function BLEChatsView({
         {/* Quick Emergency Chips */}
         <div
           className={`px-3 py-2 border-t flex items-center gap-2 overflow-x-auto no-scrollbar ${
-            isPowerSaving ? 'bg-black border-neutral-800' : 'bg-[#110b0b] border-white/5'
+            isPowerSaving ? 'bg-black border-[rgba(0,255,65,0.15)]' : 'bg-[#110b0b] border-white/5'
           }`}
         >
           <button
@@ -263,7 +263,7 @@ export default function BLEChatsView({
             onClick={() => handleSendDirect(undefined, '✅ I am safe and at a secure location.')}
             className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-semibold border ${
               isPowerSaving
-                ? 'border-neutral-800 bg-black text-[#00ff41]'
+                ? 'border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[#00ff41]'
                 : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/10'
             }`}
           >
@@ -274,7 +274,7 @@ export default function BLEChatsView({
             onClick={() => handleSendDirect(undefined, '📍 Sharing my coordinates: Dadar Sector (±35m).')}
             className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-semibold border ${
               isPowerSaving
-                ? 'border-neutral-800 bg-black text-[#00ff41]'
+                ? 'border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[#00ff41]'
                 : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/10'
             }`}
           >
@@ -285,7 +285,7 @@ export default function BLEChatsView({
             onClick={() => handleSendDirect(undefined, '🆘 Need drinking water and first aid support.')}
             className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-semibold border ${
               isPowerSaving
-                ? 'border-neutral-800 bg-black text-[#00ff41]'
+                ? 'border-[rgba(0,255,65,0.25)] bg-[rgba(0,255,65,0.08)] text-[#00ff41]'
                 : 'border-red-900 bg-red-950/40 text-red-300 hover:bg-red-950/60'
             }`}
           >
@@ -297,7 +297,7 @@ export default function BLEChatsView({
         <form
           onSubmit={(e) => handleSendDirect(e)}
           className={`flex items-center gap-2 border-t p-3 ${
-            isPowerSaving ? 'bg-black border-neutral-800' : 'bg-[#150f0f] border-red-950'
+            isPowerSaving ? 'bg-black border-[rgba(0,255,65,0.15)]' : 'bg-[#150f0f] border-red-950'
           }`}
         >
           <input
@@ -307,7 +307,7 @@ export default function BLEChatsView({
             placeholder="Type a BLE message..."
             className={`flex-1 rounded-2xl px-4 py-3 text-sm outline-none transition-all ${
               isPowerSaving
-                ? 'bg-black border border-neutral-800 text-[#00ff41] placeholder-[#00ff41]/40'
+                ? 'bg-black border border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)]'
                 : 'bg-black/50 border border-white/10 text-white placeholder-stone-500 focus:border-red-500'
             }`}
           />
@@ -316,7 +316,7 @@ export default function BLEChatsView({
             disabled={!directText.trim()}
             className={`p-3 rounded-2xl font-bold transition-all ${
               isPowerSaving
-                ? 'border border-[#00ff41] bg-black text-[#00ff41] disabled:opacity-30'
+                ? 'border border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] disabled:opacity-30'
                 : 'bg-gradient-to-r from-[#ff6754] via-[#ff263d] to-[#bd1230] text-white disabled:opacity-40 hover:brightness-110 shadow-lg'
             }`}
           >
@@ -335,7 +335,7 @@ export default function BLEChatsView({
       <div className="flex h-full flex-col pb-[74px]">
         <header
           className={`flex items-center gap-3 border-b px-5 py-3 transition-colors ${
-            isPowerSaving ? 'bg-black border-neutral-800' : 'bg-[#100b0b] border-red-950'
+            isPowerSaving ? 'bg-black border-[rgba(0,255,65,0.18)]' : 'bg-[#100b0b] border-red-950'
           }`}
         >
           <button
@@ -347,7 +347,9 @@ export default function BLEChatsView({
           </button>
           <span
             className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              isPowerSaving ? 'border border-[#00ff41] text-[#00ff41]' : 'bg-red-500/15 text-red-400'
+              isPowerSaving
+                ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
+                : 'bg-red-500/15 text-red-400'
             }`}
           >
             {activeChannel.channelType === 'community' ? (
@@ -366,7 +368,7 @@ export default function BLEChatsView({
             </b>
             <small
               className={`text-xs block ${
-                isPowerSaving ? 'text-[#00ff41]/70' : 'text-emerald-400'
+                isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-emerald-400'
               }`}
             >
               BLE mesh · 8 nodes in sector
@@ -385,10 +387,10 @@ export default function BLEChatsView({
               className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
                 msg.senderName === 'Aarya Mehta'
                   ? isPowerSaving
-                    ? 'ml-auto border border-[#00ff41] bg-black text-[#00ff41]'
+                    ? 'ml-auto border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.12)] text-[#00ff41]'
                     : 'ml-auto bg-red-600 text-white'
                   : isPowerSaving
-                  ? 'border border-neutral-800 bg-neutral-950 text-[#00ff41]'
+                  ? 'border border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.05)] text-[#00ff41]'
                   : 'bg-[#211717] border border-red-950 text-white'
               }`}
             >
@@ -401,7 +403,7 @@ export default function BLEChatsView({
         <form
           onSubmit={handleSendChannel}
           className={`flex items-center gap-2 border-t p-3 ${
-            isPowerSaving ? 'bg-black border-neutral-800' : 'bg-[#150f0f] border-red-950'
+            isPowerSaving ? 'bg-black border-[rgba(0,255,65,0.15)]' : 'bg-[#150f0f] border-red-950'
           }`}
         >
           <input
@@ -411,13 +413,17 @@ export default function BLEChatsView({
             placeholder="Broadcast to channel..."
             className={`flex-1 rounded-2xl px-4 py-3 text-sm outline-none ${
               isPowerSaving
-                ? 'bg-black border border-neutral-800 text-[#00ff41]'
+                ? 'bg-black border border-[rgba(0,255,65,0.2)] text-[#00ff41]'
                 : 'bg-black/50 border border-white/10 text-white'
             }`}
           />
           <button
             type="submit"
-            className="p-3 rounded-2xl bg-red-600 text-white font-bold"
+            className={`p-3 rounded-2xl font-bold ${
+              isPowerSaving
+                ? 'border border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41]'
+                : 'bg-red-600 text-white'
+            }`}
           >
             <Send className="w-5 h-5" />
           </button>
@@ -437,7 +443,7 @@ export default function BLEChatsView({
           <div
             className={`w-full max-w-sm rounded-3xl border p-6 shadow-2xl ${
               isPowerSaving
-                ? 'bg-black border-neutral-800 text-[#00ff41]'
+                ? 'bg-black border-[rgba(0,255,65,0.25)] text-[#00ff41]'
                 : 'bg-[#140e0e] border-[#54302c] text-white'
             }`}
           >
@@ -455,7 +461,7 @@ export default function BLEChatsView({
               </button>
             </div>
 
-            <p className="text-xs text-stone-400 mb-4">
+            <p className={`text-xs mb-4 ${isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'}`}>
               Add a peer by their unique Mesh ID to exchange offline store-and-forward messages.
             </p>
 
@@ -469,7 +475,7 @@ export default function BLEChatsView({
                   onChange={(e) => setNewContactId(e.target.value)}
                   className={`w-full px-4 py-3 rounded-xl text-sm font-mono uppercase outline-none border ${
                     isPowerSaving
-                      ? 'bg-black border-neutral-800 text-[#00ff41]'
+                      ? 'bg-black border-[rgba(0,255,65,0.2)] text-[#00ff41]'
                       : 'bg-black/50 border-white/10 text-white focus:border-red-500'
                   }`}
                 />
@@ -484,7 +490,7 @@ export default function BLEChatsView({
                   onChange={(e) => setNewContactName(e.target.value)}
                   className={`w-full px-4 py-3 rounded-xl text-sm outline-none border ${
                     isPowerSaving
-                      ? 'bg-black border-neutral-800 text-[#00ff41]'
+                      ? 'bg-black border-[rgba(0,255,65,0.2)] text-[#00ff41]'
                       : 'bg-black/50 border-white/10 text-white focus:border-red-500'
                   }`}
                 />
@@ -499,7 +505,7 @@ export default function BLEChatsView({
                   onChange={(e) => setNewContactArea(e.target.value)}
                   className={`w-full px-4 py-3 rounded-xl text-sm outline-none border ${
                     isPowerSaving
-                      ? 'bg-black border-neutral-800 text-[#00ff41]'
+                      ? 'bg-black border-[rgba(0,255,65,0.2)] text-[#00ff41]'
                       : 'bg-black/50 border-white/10 text-white focus:border-red-500'
                   }`}
                 />
@@ -521,7 +527,7 @@ export default function BLEChatsView({
                   type="submit"
                   className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                     isPowerSaving
-                      ? 'border border-[#00ff41] bg-black text-[#00ff41]'
+                      ? 'border border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41]'
                       : 'bg-gradient-to-r from-[#ff6754] to-[#bd1230] text-white shadow-lg'
                   }`}
                 >
@@ -550,7 +556,7 @@ export default function BLEChatsView({
             onClick={handleCopyId}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold border transition-all ${
               isPowerSaving
-                ? 'border-neutral-800 bg-black text-[#00ff41]'
+                ? 'border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[#00ff41]'
                 : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/10'
             }`}
             title="Click to copy your unique Mesh ID"
@@ -562,7 +568,7 @@ export default function BLEChatsView({
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-stone-400" />
+                <Copy className={`w-3.5 h-3.5 ${isPowerSaving ? 'text-[#00ff41]' : 'text-stone-400'}`} />
                 {myMeshId}
               </>
             )}
@@ -583,7 +589,7 @@ export default function BLEChatsView({
             onClick={() => setShowAddContactModal(true)}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
               isPowerSaving
-                ? 'border border-[#00ff41] bg-black text-[#00ff41]'
+                ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.12)] text-[#00ff41]'
                 : 'bg-red-500/15 border border-red-500/30 text-red-300 hover:bg-red-500/25'
             }`}
           >
@@ -595,7 +601,7 @@ export default function BLEChatsView({
         {/* WhatsApp Tab Switcher */}
         <div
           className={`mt-3 flex rounded-xl p-1 border ${
-            isPowerSaving ? 'bg-black border-neutral-800' : 'bg-black/30 border-white/5'
+            isPowerSaving ? 'bg-black border-[rgba(0,255,65,0.18)]' : 'bg-black/30 border-white/5'
           }`}
         >
           <button
@@ -604,8 +610,10 @@ export default function BLEChatsView({
             className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'direct'
                 ? isPowerSaving
-                  ? 'border border-[#00ff41] bg-black text-[#00ff41]'
+                  ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.14)] text-[#00ff41]'
                   : 'bg-red-600 text-white shadow'
+                : isPowerSaving
+                ? 'text-[rgba(0,255,65,0.55)] hover:text-[#00ff41]'
                 : 'text-stone-400 hover:text-white'
             }`}
           >
@@ -617,8 +625,10 @@ export default function BLEChatsView({
             className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'channels'
                 ? isPowerSaving
-                  ? 'border border-[#00ff41] bg-black text-[#00ff41]'
+                  ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.14)] text-[#00ff41]'
                   : 'bg-red-600 text-white shadow'
+                : isPowerSaving
+                ? 'text-[rgba(0,255,65,0.55)] hover:text-[#00ff41]'
                 : 'text-stone-400 hover:text-white'
             }`}
           >
@@ -628,7 +638,7 @@ export default function BLEChatsView({
 
         {/* Search Bar */}
         <div className="relative mt-3">
-          <Search className="w-4 h-4 text-stone-500 absolute left-3.5 top-3" />
+          <Search className={`w-4 h-4 absolute left-3.5 top-3 ${isPowerSaving ? 'text-[rgba(0,255,65,0.5)]' : 'text-stone-500'}`} />
           <input
             type="text"
             placeholder={
@@ -640,7 +650,7 @@ export default function BLEChatsView({
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`w-full rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none border transition-all ${
               isPowerSaving
-                ? 'bg-black border-neutral-800 text-[#00ff41] placeholder-[#00ff41]/40'
+                ? 'bg-black border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)]'
                 : 'bg-black/40 border-white/5 text-white placeholder-stone-500 focus:border-red-500'
             }`}
           />
@@ -653,7 +663,7 @@ export default function BLEChatsView({
       {activeTab === 'direct' && (
         <div className="px-5 mt-2 space-y-2">
           {filteredContacts.length === 0 ? (
-            <div className="text-center py-12 text-stone-500">
+            <div className={`text-center py-12 ${isPowerSaving ? 'text-[rgba(0,255,65,0.5)]' : 'text-stone-500'}`}>
               <Users className="w-10 h-10 mx-auto mb-2 opacity-40" />
               <p className="text-sm font-semibold">No contacts found</p>
               <p className="text-xs mt-1">Tap &quot;Add Contact&quot; to connect with a peer&apos;s Mesh ID.</p>
@@ -670,7 +680,7 @@ export default function BLEChatsView({
                   onClick={() => setActiveContact(contact)}
                   className={`flex items-center gap-3.5 p-3.5 rounded-2xl border transition-all cursor-pointer ${
                     isPowerSaving
-                      ? 'border-neutral-800 bg-black hover:border-[#00ff41]'
+                      ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] hover:bg-[rgba(0,255,65,0.12)] backdrop-blur-sm'
                       : 'border-white/5 bg-[#140e0e] hover:bg-white/5'
                   }`}
                 >
@@ -691,7 +701,7 @@ export default function BLEChatsView({
                       >
                         {contact.name}
                       </b>
-                      <span className="text-[10px] text-stone-500 font-mono">
+                      <span className={`text-[10px] font-mono ${isPowerSaving ? 'text-[rgba(0,255,65,0.6)]' : 'text-stone-500'}`}>
                         {lastMsg ? lastMsg.timestamp : '12:00 PM'}
                       </span>
                     </div>
@@ -700,14 +710,14 @@ export default function BLEChatsView({
                       <span
                         className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold ${
                           isPowerSaving
-                            ? 'border border-[#00ff41] text-[#00ff41]'
+                            ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
                             : 'bg-white/10 text-stone-300'
                         }`}
                       >
                         {contact.id}
                       </span>
                       {contact.area && (
-                        <span className="text-xs text-stone-400 truncate">
+                        <span className={`text-xs truncate ${isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'}`}>
                           · {contact.area}
                         </span>
                       )}
@@ -715,7 +725,7 @@ export default function BLEChatsView({
 
                     <p
                       className={`text-xs truncate mt-1 ${
-                        isPowerSaving ? 'text-[#00ff41]/70' : 'text-stone-300'
+                        isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
                       }`}
                     >
                       {lastMsg ? lastMsg.text : contact.statusNote || 'No messages yet'}
@@ -739,14 +749,14 @@ export default function BLEChatsView({
               onClick={() => setActiveChannel(channel)}
               className={`flex items-center gap-3.5 p-3.5 rounded-2xl border transition-all cursor-pointer ${
                 isPowerSaving
-                  ? 'border-neutral-800 bg-black hover:border-[#00ff41]'
+                  ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] hover:bg-[rgba(0,255,65,0.12)] backdrop-blur-sm'
                   : 'border-white/5 bg-[#140e0e] hover:bg-white/5'
               }`}
             >
               <div
                 className={`w-12 h-12 rounded-full flex-none flex items-center justify-center ${
                   isPowerSaving
-                    ? 'border border-[#00ff41] text-[#00ff41]'
+                    ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
                     : 'bg-red-500/15 text-red-400'
                 }`}
               >
@@ -766,7 +776,7 @@ export default function BLEChatsView({
                 </b>
                 <p
                   className={`text-xs truncate mt-0.5 ${
-                    isPowerSaving ? 'text-[#00ff41]/70' : 'text-stone-400'
+                    isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
                   }`}
                 >
                   {channel.description}
@@ -780,7 +790,7 @@ export default function BLEChatsView({
             onClick={onOpenNewChannel}
             className={`w-full mt-3 py-3 px-4 rounded-2xl border text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               isPowerSaving
-                ? 'border-neutral-800 text-[#00ff41]'
+                ? 'border-[rgba(0,255,65,0.25)] bg-[rgba(0,255,65,0.08)] text-[#00ff41]'
                 : 'border-white/10 bg-white/5 text-stone-300 hover:bg-white/10'
             }`}
           >

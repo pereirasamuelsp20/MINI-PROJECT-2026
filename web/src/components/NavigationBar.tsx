@@ -34,10 +34,10 @@ export default function NavigationBar({ role, currentTab, onSelectTab }: Navigat
 
   return (
     <nav
-      className={`absolute inset-x-0 bottom-0 z-20 grid h-[76px] ${gridClass} border-t px-1 pb-2 backdrop-blur-xl transition-colors ${
+      className={`absolute inset-x-0 bottom-0 z-20 grid h-[76px] ${gridClass} border-t px-1 pb-2 transition-colors ${
         isPowerSaving
-          ? 'bg-black border-neutral-800'
-          : 'bg-[#0d0909]/95 border-red-950/80'
+          ? 'bg-black border-[rgba(0,255,65,0.15)]'
+          : 'bg-[#0d0909]/95 border-red-950/80 backdrop-blur-xl'
       }`}
     >
       {tabs.map((tab) => {
@@ -52,10 +52,10 @@ export default function NavigationBar({ role, currentTab, onSelectTab }: Navigat
             className={`flex flex-col items-center justify-center gap-1 transition-all ${
               isActive
                 ? isPowerSaving
-                  ? 'text-[#00ff41]'
+                  ? 'text-[#00ff41] font-bold'
                   : 'text-red-400 font-bold'
                 : isPowerSaving
-                ? 'text-[#00ff41]/50 hover:text-[#00ff41]'
+                ? 'text-[rgba(0,255,65,0.55)] hover:text-[#00ff41]'
                 : 'text-stone-400 hover:text-stone-200'
             }`}
           >
@@ -63,7 +63,7 @@ export default function NavigationBar({ role, currentTab, onSelectTab }: Navigat
               className={`p-1.5 rounded-xl transition-all ${
                 isActive
                   ? isPowerSaving
-                    ? 'border border-[#00ff41] bg-black'
+                    ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.12)] text-[#00ff41]'
                     : 'bg-red-500/15 shadow-[0_0_12px_rgba(255,38,61,0.25)]'
                   : ''
               }`}

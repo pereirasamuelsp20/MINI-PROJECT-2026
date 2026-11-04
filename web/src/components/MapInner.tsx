@@ -488,7 +488,7 @@ export default function MapInner({
       <div
         ref={mapContainerRef}
         className={`w-full h-full ${
-          isPowerSaving ? 'filter invert brightness-75 contrast-125' : ''
+          isPowerSaving ? 'filter invert brightness-90' : ''
         }`}
       />
 
@@ -501,19 +501,21 @@ export default function MapInner({
           }}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl font-black text-xs uppercase tracking-wider shadow-2xl transition-all active:scale-95 border ${
             isPowerSaving
-              ? 'bg-black border-[#00ff41] text-[#00ff41] shadow-[0_0_15px_#00ff41]'
+              ? 'bg-[rgba(0,255,65,0.12)] border-[#00ff41] text-[#00ff41] backdrop-blur-sm'
               : 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-red-400 shadow-[0_0_20px_rgba(255,38,61,0.6)] hover:brightness-110'
           }`}
           title="Report Obstruction / Hazard (BLE)"
         >
-          <TriangleAlert className="w-4 h-4 text-white fill-white animate-pulse" />
+          <TriangleAlert className={`w-4 h-4 ${isPowerSaving ? 'text-[#00ff41] fill-[#00ff41]' : 'text-white fill-white animate-pulse'}`} />
           <span>Report Hazard</span>
         </button>
 
         {/* PDR / GPS Dead Reckoning Status Tag */}
         <div
           className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold backdrop-blur-md shadow-md flex items-center gap-2 ${
-            pdrStatus?.isGpsLost
+            isPowerSaving
+              ? 'bg-black/90 border-[rgba(0,255,65,0.3)] text-[#00ff41]'
+              : pdrStatus?.isGpsLost
               ? 'bg-amber-950/80 border-amber-600/70 text-amber-300'
               : 'bg-black/80 border-emerald-600/70 text-emerald-400'
           }`}
@@ -525,7 +527,7 @@ export default function MapInner({
             </>
           ) : (
             <>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className={`w-2 h-2 rounded-full ${isPowerSaving ? 'bg-[#00ff41]' : 'bg-emerald-400 animate-pulse'}`} />
               <span>GPS Real-Time (±{pdrStatus?.accuracyMeters ?? 15}m)</span>
             </>
           )}
@@ -539,7 +541,7 @@ export default function MapInner({
           onClick={handleSimulateStep}
           className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border backdrop-blur-md shadow-md transition-all active:scale-95 flex items-center gap-1.5 ${
             isPowerSaving
-              ? 'bg-black border-[#00ff41] text-[#00ff41]'
+              ? 'bg-[rgba(0,255,65,0.1)] border-[rgba(0,255,65,0.3)] text-[#00ff41]'
               : 'bg-black/75 border-neutral-700 text-stone-200 hover:text-white'
           }`}
           title="Simulate walking step to test PDR dead reckoning"

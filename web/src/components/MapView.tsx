@@ -116,7 +116,7 @@ export default function MapView({
           <span
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
               isPowerSaving
-                ? 'border-neutral-800 bg-black text-[#00ff41]'
+                ? 'border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[#00ff41]'
                 : isResponder
                 ? 'border-emerald-800/60 bg-emerald-950/30 text-emerald-300'
                 : 'border-red-900/50 bg-red-950/30 text-red-300'
@@ -136,7 +136,7 @@ export default function MapView({
         </h1>
         <p
           className={`mt-1 text-xs leading-relaxed ${
-            isPowerSaving ? 'text-[#00ff41]/70' : 'text-stone-300'
+            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
           }`}
         >
           {isResponder
@@ -152,10 +152,10 @@ export default function MapView({
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
               permissionsActive
                 ? isPowerSaving
-                  ? 'border-neutral-800 bg-black text-[#00ff41]'
+                  ? 'border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[#00ff41]'
                   : 'border-emerald-800/60 bg-emerald-950/20 text-emerald-400'
                 : isPowerSaving
-                ? 'border-[#00ff41] bg-black text-[#00ff41]'
+                ? 'border-[#00ff41] bg-[rgba(0,255,65,0.12)] text-[#00ff41]'
                 : 'border-red-700 bg-red-950/40 text-red-300 hover:brightness-110'
             }`}
           >
@@ -178,7 +178,7 @@ export default function MapView({
             onClick={() => setShowHazardModal(true)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
               isPowerSaving
-                ? 'border-[#00ff41] bg-black text-[#00ff41]'
+                ? 'border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
                 : 'border-red-800 bg-red-950/50 text-red-300 hover:bg-red-900/60'
             }`}
           >
@@ -211,7 +211,7 @@ export default function MapView({
         <div
           className={`mx-5 mb-3 p-3.5 rounded-2xl border flex items-center justify-between gap-3 ${
             isPowerSaving
-              ? 'bg-black border-[#00ff41] text-[#00ff41]'
+              ? 'bg-[rgba(0,255,65,0.08)] border-[rgba(0,255,65,0.25)] text-[#00ff41]'
               : 'bg-red-950/40 border-red-600/60 text-white shadow-[0_0_20px_rgba(255,38,61,0.2)]'
           }`}
         >
@@ -241,7 +241,9 @@ export default function MapView({
       )}
 
       {/* Map Viewport Container */}
-      <div className="mx-5 h-[440px] relative rounded-3xl overflow-hidden border border-neutral-800 shadow-2xl">
+      <div className={`mx-5 h-[440px] relative rounded-3xl overflow-hidden border shadow-2xl ${
+        isPowerSaving ? 'border-[rgba(0,255,65,0.2)]' : 'border-neutral-800'
+      }`}>
         {!showPermissionModal && (
           <MapInner
             userLocation={userCoords}
@@ -270,14 +272,14 @@ export default function MapView({
       <article
         className={`mx-5 mt-4 flex items-center gap-3.5 rounded-2xl border p-4 transition-colors ${
           isPowerSaving
-            ? 'bg-black border-neutral-800 text-[#00ff41]'
+            ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
             : 'bg-[#181111] border-red-950 text-white'
         }`}
       >
         <span
           className={`p-3 rounded-2xl ${
             isPowerSaving
-              ? 'border border-neutral-800 bg-black text-[#00ff41]'
+              ? 'border border-[rgba(0,255,65,0.25)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
               : 'bg-red-500/15 text-red-400'
           }`}
         >
@@ -286,7 +288,7 @@ export default function MapView({
         <span className="flex-1 min-w-0">
           <small
             className={`block text-xs font-bold uppercase tracking-wider ${
-              isPowerSaving ? 'text-[#00ff41]/70' : 'text-red-400'
+              isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-red-400'
             }`}
           >
             {activeTarget ? 'En Route to Victim' : 'Nearest Safe Haven'}
@@ -300,7 +302,7 @@ export default function MapView({
           </b>
           <small
             className={`block text-xs mt-0.5 ${
-              isPowerSaving ? 'text-[#00ff41]/60' : 'text-stone-400'
+              isPowerSaving ? 'text-[rgba(0,255,65,0.65)]' : 'text-stone-400'
             }`}
           >
             {activeTarget ? 'Approx. 850m · 10 mins arrival' : selectedPoint.distance}
@@ -311,7 +313,7 @@ export default function MapView({
           onClick={() => setRouteActive(!routeActive)}
           className={`px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all ${
             isPowerSaving
-              ? 'border border-[#00ff41] bg-black text-[#00ff41] hover:bg-[#00ff41]/10'
+              ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.12)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.2)]'
               : 'border border-red-900 bg-red-500/15 text-red-400 hover:bg-red-500/25'
           }`}
         >
@@ -324,7 +326,7 @@ export default function MapView({
       <div
         className={`mx-5 mt-3 p-3.5 rounded-2xl border text-xs flex items-center justify-between gap-2.5 ${
           isPowerSaving
-            ? 'bg-black border-neutral-800 text-[#00ff41]/80'
+            ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[rgba(0,255,65,0.85)]'
             : 'bg-black/40 border-white/5 text-stone-300'
         }`}
       >
@@ -336,7 +338,7 @@ export default function MapView({
               : 'GPS Locked · Real-time Kalman fusion'}
           </span>
         </div>
-        <span className="text-[11px] font-bold text-stone-400">
+        <span className={`text-[11px] font-bold ${isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'}`}>
           ±{livePdrEstimate?.accuracyMeters ?? 20}m uncertainty
         </span>
       </div>
