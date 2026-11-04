@@ -1,10 +1,12 @@
 /**
  * Pedestrian Dead Reckoning (PDR) & 2D Extended Kalman Filter
  * 
- * Fuses GPS observations with accelerometer step detection and compass orientation.
- * When GPS lock is lost (underground, indoor shelter, or signal loss),
- * dead reckoning propagates the position estimate using detected strides,
- * while expanding uncertainty bounds per Rule 8.
+ * Strategy:
+ * 1. Default to pure GPS whenever a fresh satellite lock exists (within 8 seconds).
+ *    In GPS mode, exact hardware coordinates and accuracy are used with zero mathematical drift.
+ * 2. Only engage PDR + Kalman Filter dead reckoning when GPS signal is lost
+ *    (indoor facilities, basements, tunnels, or urban canyon signal dropouts).
+ * 3. When GPS lock returns, immediately re-anchor the Kalman state to the true GPS fix.
  */
 
 export interface LocationEstimate {
@@ -30,9 +32,9 @@ class Kalman2D {
   public vx: number = 0;
   public vy: number = 0;
 
-  // Covariance matrix (diagonal approximations for fast real-time mobile execution)
-  public p_pos: number = 100; // pos variance (m^2)
-  public p_vel: number = 4;   // vel variance ((m/s)^2)
+  // Covariance matrix (diagonal approximations)
+  public p_pos: number = 25; // pos variance (m^2)
+  public p_vel: number = 2;  // vel variance ((m/s)^2)
 
   // Process noise
   private q_pos: number = 0.5; // (m^2/s)
@@ -48,7 +50,7 @@ class Kalman2D {
       this.vx = pdrDx / Math.max(dtSeconds, 0.3);
       this.vy = pdrDy / Math.max(dtSeconds, 0.3);
       // PDR step uncertainty accumulation
-      this.p_pos += 1.2;
+      this.p_pos += 1.5;
     } else {
       // Kinematic drift prediction
       this.x += this.vx * dtSeconds;
@@ -58,22 +60,12 @@ class Kalman2D {
     }
   }
 
-  public updateGPS(measuredX: number, measuredY: number, accuracyMeters: number) {
-    const r = Math.max(accuracyMeters * accuracyMeters, 4); // Measurement variance R
-
-    // Kalman gain for position
-    const k_pos = this.p_pos / (this.p_pos + r);
-
-    // Innovation (measurement residual)
-    const resX = measuredX - this.x;
-    const resY = measuredY - this.y;
-
-    // Update state
-    this.x += k_pos * resX;
-    this.y += k_pos * resY;
-
-    // Update covariance
-    this.p_pos = (1 - k_pos) * this.p_pos;
+  public reset(accuracyMeters: number = 15) {
+    this.x = 0;
+    this.y = 0;
+    this.vx = 0;
+    this.vy = 0;
+    this.p_pos = accuracyMeters * accuracyMeters;
   }
 }
 
@@ -83,9 +75,13 @@ export class PDRKalmanTracker {
   private originLng: number;
   private hasOrigin: boolean = false;
 
+  // Raw GPS state
+  private lastGpsLat: number;
+  private lastGpsLng: number;
   private lastGpsTimestamp: number = 0;
+  private lastGpsAccuracy: number = 20;
+
   private lastUpdateTimestamp: number = Date.now();
-  private lastGpsAccuracy: number = 25;
 
   // Orientation & Compass
   private currentHeading: number | null = null; // degrees from true North
@@ -93,7 +89,6 @@ export class PDRKalmanTracker {
   // Step detection
   private stepCount: number = 0;
   private defaultStrideLength: number = 0.74; // meters per stride
-  private lastAccelMagnitude: number = 9.8;
   private accelWindow: number[] = [];
   private lastStepTimestamp: number = 0;
   private isStepPeakDetected: boolean = false;
@@ -106,6 +101,8 @@ export class PDRKalmanTracker {
   constructor(initialLat: number = 19.076, initialLng: number = 72.8777) {
     this.originLat = initialLat;
     this.originLng = initialLng;
+    this.lastGpsLat = initialLat;
+    this.lastGpsLng = initialLng;
   }
 
   public start() {
@@ -114,17 +111,14 @@ export class PDRKalmanTracker {
     this.lastUpdateTimestamp = Date.now();
 
     if (typeof window !== 'undefined') {
-      // Device Motion (Accelerometer)
       window.addEventListener('devicemotion', this.handleDeviceMotion, true);
-
-      // Device Orientation (Compass)
       window.addEventListener('deviceorientation', this.handleDeviceOrientation, true);
     }
 
-    // Regular interval to evaluate GPS expiration and emit fused state
+    // Periodic check to detect GPS loss or evaluate dead reckoning
     this.periodicInterval = setInterval(() => {
       this.tick();
-    }, 500);
+    }, 1000);
   }
 
   public stop() {
@@ -147,37 +141,37 @@ export class PDRKalmanTracker {
   }
 
   /**
-   * Feed a new GPS observation into the Kalman filter
+   * Feed a new raw GPS observation directly from hardware GPS.
+   * Whenever GPS is available, it is the authoritative source of truth.
    */
   public updateGPS(lat: number, lng: number, accuracyMeters: number = 15) {
     const now = Date.now();
-    const dt = (now - this.lastUpdateTimestamp) / 1000;
     this.lastUpdateTimestamp = now;
     this.lastGpsTimestamp = now;
     this.lastGpsAccuracy = accuracyMeters;
+    this.lastGpsLat = lat;
+    this.lastGpsLng = lng;
 
-    if (!this.hasOrigin) {
-      this.originLat = lat;
-      this.originLng = lng;
-      this.hasOrigin = true;
-      this.kalman.x = 0;
-      this.kalman.y = 0;
-      this.kalman.p_pos = accuracyMeters * accuracyMeters;
-      this.emit();
-      return;
-    }
+    // Anchor dead reckoning origin to this exact GPS fix
+    this.originLat = lat;
+    this.originLng = lng;
+    this.hasOrigin = true;
+    this.kalman.reset(accuracyMeters);
 
-    // Convert GPS (lat, lng) to local metric offset (x, y) relative to origin
-    const { x: measuredX, y: measuredY } = this.latLngToMeters(lat, lng);
-
-    this.kalman.predict(Math.min(dt, 2.0));
-    this.kalman.updateGPS(measuredX, measuredY, accuracyMeters);
-
-    this.emit('kalman_fused');
+    this.emit('gps');
   }
 
   /**
-   * Device motion handler for peak detection step counting
+   * Check if GPS lock is currently active (< 8 seconds since last fix)
+   */
+  public hasGPSLock(): boolean {
+    if (!this.lastGpsTimestamp) return false;
+    return Date.now() - this.lastGpsTimestamp < 8000;
+  }
+
+  /**
+   * Device motion handler for peak detection step counting.
+   * Only propagates dead reckoning position if GPS is actually lost.
    */
   private handleDeviceMotion = (event: DeviceMotionEvent) => {
     const accel = event.accelerationIncludingGravity || event.acceleration;
@@ -192,15 +186,13 @@ export class PDRKalmanTracker {
     if (this.accelWindow.length > 5) this.accelWindow.shift();
 
     const smoothed = this.accelWindow.reduce((a, b) => a + b, 0) / this.accelWindow.length;
-
     const now = Date.now();
-    const thresholdHigh = 10.8; // ~1.1g threshold above Earth gravity
-    const thresholdLow = 8.8;
+    const thresholdHigh = 11.0;
+    const thresholdLow = 8.5;
 
-    // Detect step peak followed by return
+    // Detect pedestrian step peak
     if (!this.isStepPeakDetected && smoothed > thresholdHigh) {
       if (now - this.lastStepTimestamp > 280) {
-        // Enforce max cadence (<= 3.5 steps/sec)
         this.isStepPeakDetected = true;
       }
     } else if (this.isStepPeakDetected && smoothed < thresholdLow) {
@@ -208,26 +200,24 @@ export class PDRKalmanTracker {
       this.lastStepTimestamp = now;
       this.onStepDetected();
     }
-
-    this.lastAccelMagnitude = smoothed;
   };
 
   /**
    * Device orientation handler for compass bearing
    */
   private handleDeviceOrientation = (event: DeviceOrientationEvent) => {
-    // iOS provides direct webkitCompassHeading
     const evtAny = event as any;
     if (typeof evtAny.webkitCompassHeading === 'number') {
       this.currentHeading = evtAny.webkitCompassHeading;
     } else if (typeof event.alpha === 'number') {
-      // Android: alpha 0 is typically North with compass integration
       this.currentHeading = (360 - event.alpha) % 360;
     }
   };
 
   /**
-   * Triggered when a pedestrian step is identified
+   * Triggered when a pedestrian step is detected.
+   * If GPS is locked: increments step count without altering GPS position.
+   * If GPS is LOST: applies dead reckoning Kalman displacement.
    */
   private onStepDetected() {
     this.stepCount += 1;
@@ -235,56 +225,67 @@ export class PDRKalmanTracker {
     const dt = (now - this.lastUpdateTimestamp) / 1000;
     this.lastUpdateTimestamp = now;
 
-    // Default to forward heading if compass is unavailable
-    const heading = this.currentHeading ?? 0;
-    const headingRad = (heading * Math.PI) / 180;
+    if (!this.hasGPSLock()) {
+      // GPS IS LOST: Use PDR and Kalman to propagate position
+      const heading = this.currentHeading ?? 0;
+      const headingRad = (heading * Math.PI) / 180;
 
-    // Displacement in meters: North = +Y, East = +X
-    const dx = this.defaultStrideLength * Math.sin(headingRad);
-    const dy = this.defaultStrideLength * Math.cos(headingRad);
+      const dx = this.defaultStrideLength * Math.sin(headingRad);
+      const dy = this.defaultStrideLength * Math.cos(headingRad);
 
-    // Predict forward using PDR stride
-    this.kalman.predict(Math.min(dt, 2.0), dx, dy);
-
-    this.emit(this.hasGPSLock() ? 'kalman_fused' : 'pdr');
+      this.kalman.predict(Math.min(dt, 2.0), dx, dy);
+      this.emit('pdr');
+    }
   }
 
   /**
-   * Periodic check: if GPS is lost for > 8 seconds, mark as GPS Lost
+   * Periodic check: if GPS is lost for > 8 seconds, notify listeners that dead reckoning is active
    */
   private tick() {
     const now = Date.now();
     const dt = (now - this.lastUpdateTimestamp) / 1000;
 
-    if (!this.hasGPSLock() && dt > 1.5) {
-      // Slowly increase uncertainty if standing still or lost GPS
+    if (!this.hasGPSLock() && dt > 2.0) {
       this.kalman.predict(Math.min(dt, 2.0));
       this.lastUpdateTimestamp = now;
       this.emit('pdr');
     }
   }
 
-  public hasGPSLock(): boolean {
-    if (!this.lastGpsTimestamp) return false;
-    return Date.now() - this.lastGpsTimestamp < 8000; // 8 seconds timeout
-  }
-
   public getEstimate(): LocationEstimate {
-    const { lat, lng } = this.metersToLatLng(this.kalman.x, this.kalman.y);
     const isLock = this.hasGPSLock();
+
+    if (isLock) {
+      // 100% PURE GPS when lock exists:
+      return {
+        latitude: this.lastGpsLat,
+        longitude: this.lastGpsLng,
+        accuracyMeters: Math.round(this.lastGpsAccuracy),
+        source: 'gps',
+        headingDegrees: this.currentHeading,
+        speedMps: null,
+        stepCount: this.stepCount,
+        lastGpsFixTime: this.lastGpsTimestamp || null,
+        isGpsLost: false,
+        timestamp: Date.now(),
+      };
+    }
+
+    // PDR + Kalman Dead Reckoning when GPS is lost:
+    const { lat, lng } = this.metersToLatLng(this.kalman.x, this.kalman.y);
     const rawAccuracy = Math.sqrt(this.kalman.p_pos);
-    const accuracy = Math.min(Math.max(rawAccuracy, isLock ? 4 : 15), 180);
+    const accuracy = Math.min(Math.max(rawAccuracy, 20), 200);
 
     return {
       latitude: lat,
       longitude: lng,
       accuracyMeters: Math.round(accuracy),
-      source: isLock ? 'gps' : 'pdr',
+      source: 'pdr',
       headingDegrees: this.currentHeading,
       speedMps: Math.sqrt(this.kalman.vx * this.kalman.vx + this.kalman.vy * this.kalman.vy),
       stepCount: this.stepCount,
       lastGpsFixTime: this.lastGpsTimestamp || null,
-      isGpsLost: !isLock,
+      isGpsLost: true,
       timestamp: Date.now(),
     };
   }
@@ -309,19 +310,9 @@ export class PDRKalmanTracker {
   }
 
   // --- Geodetic conversion helpers (WGS-84 tangent approximation) ---
-
-  private latLngToMeters(lat: number, lng: number): { x: number; y: number } {
-    const dLat = lat - this.originLat;
-    const dLng = lng - this.originLng;
-    const y = dLat * 111320;
-    const x = dLng * (111320 * Math.cos((this.originLat * Math.PI) / 180));
-    return { x, y };
-  }
-
   private metersToLatLng(x: number, y: number): { lat: number; lng: number } {
     const lat = this.originLat + y / 111320;
     const lng = this.originLng + x / (111320 * Math.cos((this.originLat * Math.PI) / 180));
     return { lat, lng };
   }
 }
-
