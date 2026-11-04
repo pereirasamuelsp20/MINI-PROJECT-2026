@@ -5,10 +5,19 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { defaultLocations, MUMBAI_BOUNDS, MUMBAI_CENTER } from '@/lib/mockData';
 import { usePowerMode } from '@/lib/powerMode';
-import { HazardMarker, HAZARD_INFO } from '@/types/hazards';
+import { HazardMarker, HazardType, HAZARD_INFO } from '@/types/hazards';
+import { createHazardReport } from '@/lib/hazards';
 import { PDRKalmanTracker, LocationEstimate } from '@/lib/pdr';
 import { calculateHaversineDistance } from '@/lib/mumbaiSearch';
-import { TriangleAlert, Footprints, Crosshair } from 'lucide-react';
+import {
+  TriangleAlert,
+  Footprints,
+  Crosshair,
+  X,
+  MapPin,
+  CheckCircle2,
+  AlertTriangle,
+} from 'lucide-react';
 
 export interface MapTarget {
   id: string;
@@ -30,6 +39,7 @@ interface MapInnerProps {
   safeRouteActive?: boolean;
   onOpenReportHazard?: () => void;
   onOpenReportHazardAt?: (coords: [number, number]) => void;
+  onHazardPlaced?: (hazard: HazardMarker) => void;
   isResponder?: boolean;
   hazards?: HazardMarker[];
   onConfirmHazard?: (id: string) => void;
@@ -38,8 +48,8 @@ interface MapInnerProps {
 
 // Proximity constraint: 300 meters maximum visual radius for reporting
 const HAZARD_REPORTING_RADIUS_METERS = 300;
-// Proximity display radius: 2.5 km around user to reduce mobile DOM load
-const HAZARD_DISPLAY_RADIUS_METERS = 2500;
+// Proximity display radius: 3 km around user to reduce mobile DOM load
+const HAZARD_DISPLAY_RADIUS_METERS = 3000;
 
 function MapInnerComponent({
   userLocation = MUMBAI_CENTER,
@@ -51,6 +61,7 @@ function MapInnerComponent({
   safeRouteActive = true,
   onOpenReportHazard,
   onOpenReportHazardAt,
+  onHazardPlaced,
   isResponder = false,
   hazards = [],
   onConfirmHazard,
@@ -71,18 +82,38 @@ function MapInnerComponent({
   const trackerRef = useRef<PDRKalmanTracker | null>(null);
   const currentUserPos = useRef<[number, number]>(userLocation);
 
-  // Status badge state (only updates on actual status transitions to prevent re-renders)
+  // Hazard Placement Pointer Mode State
+  const [isReportingMode, setIsReportingMode] = useState<boolean>(false);
+  const [selectedHazardType, setSelectedHazardType] = useState<HazardType>('flooded');
+  const [reportWarning, setReportWarning] = useState<string | null>(null);
+  const [reportSuccess, setReportSuccess] = useState<string | null>(null);
+
+  const isReportingModeRef = useRef<boolean>(false);
+  const selectedHazardTypeRef = useRef<HazardType>('flooded');
+  const onHazardPlacedRef = useRef<((h: HazardMarker) => void) | undefined>(onHazardPlaced);
+
+  useEffect(() => {
+    isReportingModeRef.current = isReportingMode;
+  }, [isReportingMode]);
+
+  useEffect(() => {
+    selectedHazardTypeRef.current = selectedHazardType;
+  }, [selectedHazardType]);
+
+  useEffect(() => {
+    onHazardPlacedRef.current = onHazardPlaced;
+  }, [onHazardPlaced]);
+
+  // Status badge state
   const [gpsStatus, setGpsStatus] = useState<{ isLost: boolean; accuracy: number }>({
     isLost: false,
     accuracy: 15,
   });
 
   const [recalibrating, setRecalibrating] = useState<boolean>(false);
-  const isFollowingUserRef = useRef<boolean>(true);
-
   const { isPowerSaving } = usePowerMode();
 
-  // 1. Initialize PDR Tracker & Hardware GPS (Pure GPS prioritized)
+  // 1. Initialize PDR Tracker & Hardware GPS
   useEffect(() => {
     const tracker = new PDRKalmanTracker(userLocation[0], userLocation[1]);
     trackerRef.current = tracker;
@@ -114,15 +145,8 @@ function MapInnerComponent({
         }
       }
 
-      // Smooth pan ONLY if following user, holding the user's manual zoom level
-      if (isFollowingUserRef.current && mapInstanceRef.current) {
-        mapInstanceRef.current.panTo([estimate.latitude, estimate.longitude], {
-          animate: true,
-          duration: 0.4,
-        });
-      }
-
-      // Only update React status state if status flag changed
+      // NOTE: Removed continuous panTo here so map NEVER yanks back unexpectedly!
+      // Only updates React status state if status flag changed
       setGpsStatus((prev) => {
         if (prev.isLost !== estimate.isGpsLost || Math.abs(prev.accuracy - estimate.accuracyMeters) > 8) {
           return { isLost: estimate.isGpsLost, accuracy: estimate.accuracyMeters };
@@ -138,34 +162,30 @@ function MapInnerComponent({
     if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
-          tracker.updateGPS(
-            pos.coords.latitude,
-            pos.coords.longitude,
-            Math.round(pos.coords.accuracy)
-          );
+          tracker.updateGPS(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
         },
-        () => {},
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 2000 }
+        () => {
+          // GPS lost, PDR dead-reckoning engages automatically
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 2000 }
       );
     }
 
     return () => {
-      unsubscribe();
       tracker.stop();
+      unsubscribe();
       if (watchId !== null && typeof navigator !== 'undefined') {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [isPowerSaving]);
+  }, [userLocation, isPowerSaving, onPdrUpdate]);
 
-  // 2. Initialize Leaflet Map ONCE on Mount (Holds zoom permanently)
+  // 2. Initialize Leaflet Map (Holds manual zoom & pan strictly)
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
 
-    // Requirement: Zoom in on load to level 16, then HOLD manual zoom
     const initialZoom = 16;
-
     const map = L.map(mapContainerRef.current, {
       center: userLocation,
       zoom: initialZoom,
@@ -178,20 +198,12 @@ function MapInnerComponent({
     });
     mapInstanceRef.current = map;
 
-    // User manual navigation: stop auto-centering when user touches or zooms
-    map.on('dragstart', () => {
-      isFollowingUserRef.current = false;
-    });
-    map.on('zoomstart', () => {
-      isFollowingUserRef.current = false;
-    });
-
-    // High-performance direct CDN tile layer with HTTP/2 multi-subdomain concurrent loading
+    // High-performance direct CDN tile layer with HTTP/2 multi-subdomain loading
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       subdomains: ['a', 'b', 'c'],
       maxZoom: 19,
-      keepBuffer: 8,        // Keep 8 offscreen tiles in memory for instant pan response
-      updateWhenIdle: true, // Only render new tiles when pan settles (eliminates mobile stutter)
+      keepBuffer: 8,
+      updateWhenIdle: true,
       updateWhenZooming: false,
       crossOrigin: true,
       attribution: '&copy; OpenStreetMap',
@@ -250,26 +262,66 @@ function MapInnerComponent({
     }).addTo(map);
     proximityCircleRef.current = proximityCircle;
 
-    // REQUIREMENT: Tap anywhere on map to report hazard - ONLY valid within proximity circle!
+    // INTERACTIVE MAP CLICK: Instant frictionless hazard placement
     map.on('click', (e: L.LeafletMouseEvent) => {
       const tappedLat = parseFloat(e.latlng.lat.toFixed(5));
       const tappedLng = parseFloat(e.latlng.lng.toFixed(5));
       const userLat = currentUserPos.current[0];
       const userLng = currentUserPos.current[1];
 
-      // Calculate distance from user to tapped spot
       const distance = calculateHaversineDistance(userLat, userLng, tappedLat, tappedLng);
       const isWithinProximity = distance <= HAZARD_REPORTING_RADIUS_METERS;
 
-      if (isWithinProximity) {
-        // Valid spot within 300m proximity
+      // IF USER IS IN HAZARD REPORTING POINTER MODE:
+      if (isReportingModeRef.current) {
+        if (isWithinProximity) {
+          const type = selectedHazardTypeRef.current;
+          const info = HAZARD_INFO[type] || {
+            emoji: '⚠️',
+            label: type,
+            color: '#ef4444',
+            description: 'Hazard',
+          };
+
+          const newHazard = createHazardReport({
+            type,
+            latitude: tappedLat,
+            longitude: tappedLng,
+            accuracyMeters: 15,
+            severity: 'high',
+            description: `${info.label} placed by citizen within visual proximity (~${Math.round(distance)}m).`,
+            reportedBy: 'MESH-CITIZEN-PROXIMITY',
+          });
+
+          if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+            navigator.vibrate([40, 50, 40]);
+          }
+
+          if (onHazardPlacedRef.current) {
+            onHazardPlacedRef.current(newHazard);
+          }
+
+          setIsReportingMode(false);
+          setReportSuccess(`✅ ${info.emoji} ${info.label} reported & broadcast over BLE!`);
+          setTimeout(() => setReportSuccess(null), 3500);
+        } else {
+          setReportWarning(
+            `🚫 Too far (~${Math.round(distance)}m). You can only report within your 300m visual proximity circle.`
+          );
+          setTimeout(() => setReportWarning(null), 3500);
+        }
+        return;
+      }
+
+      // Normal mode: clicking outside reporting mode within proximity gives quick option
+      if (isWithinProximity && onOpenReportHazardAt) {
         L.popup()
           .setLatLng(e.latlng)
           .setContent(`
             <div style="font-family: sans-serif; font-size: 12px; color: #111; padding: 2px;">
               <b style="color: #059669; font-size: 13px;">✅ Visual Proximity (~${Math.round(distance)}m)</b>
               <p style="margin: 4px 0 6px; font-size: 11px; color: #444;">${tappedLat}°N, ${tappedLng}°E</p>
-              <button id="btn-report-verified-tap" style="
+              <button id="btn-quick-report-tap" style="
                 background: #ff263d;
                 color: white;
                 border: none;
@@ -285,32 +337,14 @@ function MapInnerComponent({
           .openOn(map);
 
         setTimeout(() => {
-          const btn = document.getElementById('btn-report-verified-tap');
+          const btn = document.getElementById('btn-quick-report-tap');
           if (btn) {
             btn.onclick = () => {
               map.closePopup();
-              if (onOpenReportHazardAt) {
-                onOpenReportHazardAt([tappedLat, tappedLng]);
-              }
+              onOpenReportHazardAt([tappedLat, tappedLng]);
             };
           }
         }, 50);
-      } else {
-        // Out of range: block reporting beyond visual proximity
-        L.popup()
-          .setLatLng(e.latlng)
-          .setContent(`
-            <div style="font-family: sans-serif; font-size: 12px; color: #111; padding: 2px; max-width: 200px;">
-              <b style="color: #dc2626; font-size: 13px;">🚫 Outside Reporting Radius</b>
-              <p style="margin: 4px 0 2px; font-size: 11px; color: #555;">
-                This spot is <b>${Math.round(distance)}m away</b>.
-              </p>
-              <p style="margin: 2px 0 0; font-size: 10px; color: #777;">
-                Obstructions can only be reported within your visual proximity circle (300m) to ensure verification.
-              </p>
-            </div>
-          `)
-          .openOn(map);
       }
     });
 
@@ -365,21 +399,43 @@ function MapInnerComponent({
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, []);
+  }, [userLocation, isPowerSaving, onOpenReportHazardAt, onSelectLocation]);
 
-  // 3. Proximity-Filtered Hazard Flags (Reduces DOM load & renders instantly)
+  // Visual highlight of proximity circle during reporting mode
   useEffect(() => {
-    if (!hazardsLayerGroupRef.current) return;
+    if (proximityCircleRef.current) {
+      if (isReportingMode) {
+        proximityCircleRef.current.setStyle({
+          color: '#f59e0b',
+          fillColor: '#f59e0b',
+          fillOpacity: 0.15,
+          weight: 3,
+          dashArray: '6, 6',
+        });
+      } else {
+        proximityCircleRef.current.setStyle({
+          color: isPowerSaving ? '#00ff41' : '#3b82f6',
+          fillColor: isPowerSaving ? '#00ff41' : '#3b82f6',
+          fillOpacity: 0.05,
+          weight: 1.5,
+          dashArray: '4, 4',
+        });
+      }
+    }
+  }, [isReportingMode, isPowerSaving]);
+
+  // 3. Render Nearby Hazards with Proximity Filter (<= 3 km)
+  useEffect(() => {
+    if (!mapInstanceRef.current || !hazardsLayerGroupRef.current) return;
     const group = hazardsLayerGroupRef.current;
     group.clearLayers();
 
-    const uLat = currentUserPos.current[0];
-    const uLng = currentUserPos.current[1];
+    const userLat = currentUserPos.current[0];
+    const userLng = currentUserPos.current[1];
 
-    // REQUIREMENT: Only render hazard flags in user's proximity (<= 2.5km) to reduce load
     const nearbyHazards = hazards.filter((h) => {
-      const d = calculateHaversineDistance(uLat, uLng, h.latitude, h.longitude);
-      return d <= HAZARD_DISPLAY_RADIUS_METERS;
+      const dist = calculateHaversineDistance(userLat, userLng, h.latitude, h.longitude);
+      return dist <= HAZARD_DISPLAY_RADIUS_METERS;
     });
 
     nearbyHazards.forEach((hazard) => {
@@ -427,7 +483,7 @@ function MapInnerComponent({
     });
   }, [hazards]);
 
-  // 4. Update Destination & Safe Route Polyline (Without auto-zooming or changing zoom level!)
+  // 4. Update Destination & Safe Street Route Polyline (Holds manual zoom level strictly)
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
@@ -465,38 +521,72 @@ function MapInnerComponent({
     if (safeRouteActive && safeRouteWaypoints && safeRouteWaypoints.length >= 2) {
       const polyline = L.polyline(safeRouteWaypoints, {
         color: activeTarget ? '#ff263d' : isPowerSaving ? '#00ff41' : '#00d294',
-        weight: 5,
-        opacity: 0.9,
-        dashArray: '7, 7',
+        weight: 6,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round',
       }).addTo(map);
 
       routePolylineRef.current = polyline;
-      // NOTE: Removed fitBounds() per user requirement! The zoom level is strictly held.
     }
   }, [safeRouteWaypoints, destinationLocation, destinationName, safeRouteActive, activeTarget, isPowerSaving]);
 
-  // 5. Google Maps Style Recalibrate Handler (Pan to user, preserving manual zoom)
+  // 5. One-Tap Reporting at User's Current Location
+  const handlePlaceAtCurrentLocation = useCallback(() => {
+    const coords = currentUserPos.current;
+    const type = selectedHazardType;
+    const info = HAZARD_INFO[type] || {
+      emoji: '⚠️',
+      label: type,
+      color: '#ef4444',
+      description: 'Hazard',
+    };
+
+    const newHazard = createHazardReport({
+      type,
+      latitude: coords[0],
+      longitude: coords[1],
+      accuracyMeters: 15,
+      severity: 'high',
+      description: `${info.label} reported by citizen at user location.`,
+      reportedBy: 'MESH-CITIZEN-LOCAL',
+    });
+
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate([40, 50, 40]);
+    }
+
+    if (onHazardPlaced) {
+      onHazardPlaced(newHazard);
+    }
+
+    setIsReportingMode(false);
+    setReportSuccess(`✅ ${info.emoji} ${info.label} reported & broadcast over BLE!`);
+    setTimeout(() => setReportSuccess(null), 3500);
+  }, [selectedHazardType, onHazardPlaced]);
+
+  // 6. Google Maps Style Recalibrate Handler (Pan to user, preserving manual zoom)
   const handleRecalibrate = useCallback(() => {
     setRecalibrating(true);
-    isFollowingUserRef.current = true;
-
     if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const freshLat = pos.coords.latitude;
-          const freshLng = pos.coords.longitude;
-          currentUserPos.current = [freshLat, freshLng];
-
-          if (trackerRef.current) {
-            trackerRef.current.updateGPS(freshLat, freshLng, Math.round(pos.coords.accuracy));
-          }
-
-          // Pan to user while PRESERVING current manual zoom level
+          currentUserPos.current = [pos.coords.latitude, pos.coords.longitude];
           if (mapInstanceRef.current) {
-            mapInstanceRef.current.panTo([freshLat, freshLng], {
+            mapInstanceRef.current.panTo([pos.coords.latitude, pos.coords.longitude], {
               animate: true,
               duration: 0.6,
             });
+          }
+          if (userMarkerRef.current) {
+            userMarkerRef.current.setLatLng([pos.coords.latitude, pos.coords.longitude]);
+          }
+          if (accuracyCircleRef.current) {
+            accuracyCircleRef.current.setLatLng([pos.coords.latitude, pos.coords.longitude]);
+            accuracyCircleRef.current.setRadius(pos.coords.accuracy);
+          }
+          if (proximityCircleRef.current) {
+            proximityCircleRef.current.setLatLng([pos.coords.latitude, pos.coords.longitude]);
           }
           setRecalibrating(false);
         },
@@ -523,7 +613,7 @@ function MapInnerComponent({
   }, []);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full select-none">
       {/* Map Canvas */}
       <div
         ref={mapContainerRef}
@@ -557,45 +647,127 @@ function MapInnerComponent({
         </div>
       </div>
 
-      {/* SINGLE Designated Red Triangle Button (Top Right) to Report Hazard */}
+      {/* Top Notification / Toast Feedback */}
+      {reportSuccess && (
+        <div className="absolute top-14 left-4 right-4 z-[450] flex justify-center pointer-events-none">
+          <div className="bg-emerald-950 border border-emerald-500 text-emerald-200 px-3.5 py-2 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <span>{reportSuccess}</span>
+          </div>
+        </div>
+      )}
+
+      {reportWarning && (
+        <div className="absolute top-14 left-4 right-4 z-[450] flex justify-center pointer-events-none">
+          <div className="bg-rose-950 border border-rose-500 text-rose-200 px-3.5 py-2 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+            <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <span>{reportWarning}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Reporting Mode Active Instruction Banner */}
+      {isReportingMode && (
+        <div className="absolute top-12 left-3 right-3 z-[410] flex justify-center pointer-events-none">
+          <div className="bg-black/90 border border-amber-500/80 text-amber-300 px-3.5 py-2 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 backdrop-blur-md">
+            <span className="text-sm">🎯</span>
+            <span>Tap inside 300m circle to place {HAZARD_INFO[selectedHazardType]?.label.split('/')[0]}</span>
+          </div>
+        </div>
+      )}
+
+      {/* SINGLE Designated Red Triangle Button (Top Right) to Toggle Placement Mode */}
       <div className="absolute top-3 right-3 z-[400] flex flex-col items-end gap-1.5 pointer-events-auto">
         <button
           type="button"
           onClick={() => {
-            if (onOpenReportHazard) onOpenReportHazard();
+            setIsReportingMode((prev) => !prev);
           }}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl font-black text-xs uppercase tracking-wider shadow-2xl transition-all active:scale-95 border ${
-            isPowerSaving
+            isReportingMode
+              ? 'bg-amber-600 text-white border-amber-300 ring-2 ring-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
+              : isPowerSaving
               ? 'bg-[rgba(0,255,65,0.12)] border-[#00ff41] text-[#00ff41] backdrop-blur-sm'
               : 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-red-400 shadow-[0_0_20px_rgba(255,38,61,0.6)] hover:brightness-110'
           }`}
-          title="Report Obstruction at your location (Within 300m Proximity)"
+          title={isReportingMode ? 'Cancel Placement' : 'Report Hazard (Within 300m Proximity)'}
         >
-          <TriangleAlert className={`w-4 h-4 ${isPowerSaving ? 'text-[#00ff41] fill-[#00ff41]' : 'text-white fill-white animate-pulse'}`} />
-          <span>Report Hazard</span>
+          {isReportingMode ? (
+            <>
+              <X className="w-4 h-4 text-white" />
+              <span>Cancel</span>
+            </>
+          ) : (
+            <>
+              <TriangleAlert className={`w-4 h-4 ${isPowerSaving ? 'text-[#00ff41] fill-[#00ff41]' : 'text-white fill-white animate-pulse'}`} />
+              <span>Report Hazard</span>
+            </>
+          )}
         </button>
 
-        <span className="text-[10px] text-white/80 bg-black/60 px-2 py-0.5 rounded-lg border border-white/10 backdrop-blur-sm">
-          📍 Verified in 300m circle
-        </span>
+        {!isReportingMode && (
+          <span className="text-[10px] text-white/80 bg-black/60 px-2 py-0.5 rounded-lg border border-white/10 backdrop-blur-sm">
+            📍 Verified in 300m circle
+          </span>
+        )}
       </div>
+
+      {/* FRICTIONLESS QUICK-REPORT DOCK (Appears when user clicks Report Hazard) */}
+      {isReportingMode && (
+        <div className="absolute bottom-16 left-3 right-3 z-[410] flex flex-col gap-2 pointer-events-auto">
+          {/* Quick Hazard Type Selection Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 bg-black/90 border border-white/20 p-2 rounded-2xl backdrop-blur-md shadow-2xl">
+            {(['flooded', 'obstructed', 'electrical', 'collapsed', 'fire'] as HazardType[]).map((type) => {
+              const info = HAZARD_INFO[type];
+              const isSelected = selectedHazardType === type;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setSelectedHazardType(type)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg scale-105 border border-white/40'
+                      : 'bg-white/10 text-stone-300 hover:bg-white/20'
+                  }`}
+                >
+                  <span className="text-sm">{info.emoji}</span>
+                  <span>{info.label.split('/')[0]}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Instant 1-Tap Placement at User Location */}
+          <button
+            type="button"
+            onClick={handlePlaceAtCurrentLocation}
+            className="w-full py-2.5 px-4 bg-gradient-to-r from-red-600 to-rose-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-2xl flex items-center justify-center gap-2 border border-red-400 hover:brightness-110 active:scale-95"
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Place {HAZARD_INFO[selectedHazardType]?.emoji} at My Current Location</span>
+          </button>
+        </div>
+      )}
 
       {/* SINGLE Google Maps Style Recalibrate / Center Button (Bottom Right) */}
-      <div className="absolute bottom-16 right-3 z-[400] pointer-events-auto">
-        <button
-          type="button"
-          onClick={handleRecalibrate}
-          className={`flex items-center gap-1.5 px-3 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider shadow-2xl transition-all active:scale-95 border backdrop-blur-md ${
-            isPowerSaving
-              ? 'border-[#00ff41] bg-[rgba(0,255,65,0.18)] text-[#00ff41]'
-              : 'border-white/20 bg-black/85 text-stone-200 hover:bg-neutral-900'
-          }`}
-          title="Recalibrate and center on GPS location"
-        >
-          <Crosshair className={`w-4 h-4 ${recalibrating ? 'animate-spin text-emerald-400' : 'text-emerald-400'}`} />
-          <span>{recalibrating ? 'Locking…' : 'Recalibrate'}</span>
-        </button>
-      </div>
+      {!isReportingMode && (
+        <div className="absolute bottom-16 right-3 z-[400] pointer-events-auto">
+          <button
+            type="button"
+            onClick={handleRecalibrate}
+            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider shadow-2xl transition-all active:scale-95 border backdrop-blur-md ${
+              isPowerSaving
+                ? 'border-[#00ff41] bg-[rgba(0,255,65,0.18)] text-[#00ff41]'
+                : 'border-white/20 bg-black/85 text-stone-200 hover:bg-neutral-900'
+            }`}
+            title="Recalibrate and center on GPS location"
+          >
+            <Crosshair className={`w-4 h-4 ${recalibrating ? 'animate-spin text-emerald-400' : 'text-emerald-400'}`} />
+            <span>{recalibrating ? 'Locking…' : 'Recalibrate'}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

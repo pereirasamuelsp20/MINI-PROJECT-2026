@@ -24,6 +24,8 @@ import {
   MUMBAI_SEARCHABLE_LOCATIONS,
   SearchableLocation,
   generateBestSafeRoute,
+  calculateInstantSafeRoute,
+  calculateSafeEvacuationRoute,
   SafeRouteResult,
   calculateHaversineDistance,
 } from '@/lib/mumbaiSearch';
@@ -165,27 +167,34 @@ export default function MapView({
     };
   }, [permissionsActive]);
 
-  // 3. Compute Safe Route (Uses ALL hazards in the area for accurate detour planning)
+  // 3. Compute Safe Street Route (Instant offline graph + Async OSRM foot routing)
   useEffect(() => {
+    let isCancelled = false;
+    let destCoords: [number, number];
+
     if (activeTarget) {
-      const targetCoords: [number, number] = [activeTarget.latitude, activeTarget.longitude];
-      const route = generateBestSafeRoute(userCoords, targetCoords, hazards);
-      setSafeRouteResult(route);
-      return;
+      destCoords = [activeTarget.latitude, activeTarget.longitude];
+    } else if (selectedDestination) {
+      destCoords = [selectedDestination.latitude, selectedDestination.longitude];
+    } else {
+      const defaultShelter = MUMBAI_SEARCHABLE_LOCATIONS[0];
+      destCoords = [defaultShelter.latitude, defaultShelter.longitude];
     }
 
-    if (selectedDestination) {
-      const destCoords: [number, number] = [selectedDestination.latitude, selectedDestination.longitude];
-      const route = generateBestSafeRoute(userCoords, destCoords, hazards);
-      setSafeRouteResult(route);
-      return;
-    }
+    // 1. Instant calculation via Mumbai street network graph (A*)
+    const instantRoute = calculateInstantSafeRoute(userCoords, destCoords, hazards);
+    setSafeRouteResult(instantRoute);
 
-    // Default safe corridor to nearest relief haven
-    const defaultShelter = MUMBAI_SEARCHABLE_LOCATIONS[0];
-    const defaultDest: [number, number] = [defaultShelter.latitude, defaultShelter.longitude];
-    const defaultRoute = generateBestSafeRoute(userCoords, defaultDest, hazards);
-    setSafeRouteResult(defaultRoute);
+    // 2. High-precision async upgrade via OSRM pedestrian API with hazard avoidance
+    calculateSafeEvacuationRoute(userCoords, destCoords, hazards).then((refinedRoute) => {
+      if (!isCancelled && refinedRoute && refinedRoute.waypoints.length > 1) {
+        setSafeRouteResult(refinedRoute);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [userCoords, selectedDestination, activeTarget, hazards]);
 
   const handlePermissionsCompleted = (coords?: [number, number]) => {
@@ -391,10 +400,7 @@ export default function MapView({
             safeRouteActive={true}
             isResponder={isResponder}
             hazards={hazards}
-            onOpenReportHazard={() => {
-              setHazardTargetCoords(userCoords);
-              setShowHazardModal(true);
-            }}
+            onHazardPlaced={handleHazardReported}
             onOpenReportHazardAt={handleOpenReportAtCoords}
             onSelectLocation={(name) => {
               const matched = MUMBAI_SEARCHABLE_LOCATIONS.find((l) => l.name === name);
