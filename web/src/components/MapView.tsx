@@ -1,21 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import {
-  Shield,
   Navigation,
   Radio,
   MapPin,
-  CheckCircle,
-  AlertCircle,
-  TriangleAlert,
   X,
   Compass,
   Search,
-  Crosshair,
-  Footprints,
-  ShieldCheck,
   Hospital,
   Tent,
 } from 'lucide-react';
@@ -32,6 +25,7 @@ import {
   SearchableLocation,
   generateBestSafeRoute,
   SafeRouteResult,
+  calculateHaversineDistance,
 } from '@/lib/mumbaiSearch';
 
 const MapInner = dynamic(() => import('./MapInner'), {
@@ -65,9 +59,13 @@ export default function MapView({
   // Permissions & Hardware GPS state
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [permissionsActive, setPermissionsActive] = useState(false);
+
+  // Staged User Coordinates (Only updates state when moved > 10m to avoid re-rendering 1000 times)
   const [userCoords, setUserCoords] = useState<[number, number]>(MUMBAI_CENTER);
+  const lastCoordsRef = useRef<[number, number]>(MUMBAI_CENTER);
+
   const [hasRealGpsLock, setHasRealGpsLock] = useState<boolean>(false);
-  const [livePdrEstimate, setLivePdrEstimate] = useState<LocationEstimate | null>(null);
+  const [gpsAccuracyMeters, setGpsAccuracyMeters] = useState<number>(15);
 
   // Hazards state
   const [hazards, setHazards] = useState<HazardMarker[]>([]);
@@ -79,7 +77,6 @@ export default function MapView({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<SearchableLocation | null>(null);
   const [safeRouteResult, setSafeRouteResult] = useState<SafeRouteResult | null>(null);
-  const [isRoutingActive, setIsRoutingActive] = useState(true);
 
   // 1. Initial Load & Permissions
   useEffect(() => {
@@ -94,24 +91,27 @@ export default function MapView({
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const exactCoords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+            lastCoordsRef.current = exactCoords;
             setUserCoords(exactCoords);
             setHazardTargetCoords(exactCoords);
             setHasRealGpsLock(true);
+            setGpsAccuracyMeters(Math.round(pos.coords.accuracy));
+
             localStorage.setItem(
               'mesh_user_location',
               JSON.stringify({ lat: exactCoords[0], lng: exactCoords[1] })
             );
           },
           () => {
-            // Fallback saved coords
             const savedLoc = localStorage.getItem('mesh_user_location');
             if (savedLoc) {
               try {
                 const parsed = JSON.parse(savedLoc);
+                lastCoordsRef.current = [parsed.lat, parsed.lng];
                 setUserCoords([parsed.lat, parsed.lng]);
                 setHazardTargetCoords([parsed.lat, parsed.lng]);
               } catch {
-                // Default center
+                // Default
               }
             }
           },
@@ -125,20 +125,36 @@ export default function MapView({
     }
   }, []);
 
-  // 2. Continuous Hardware GPS Watcher
+  // 2. Hardware GPS Watcher with Debounced Coordinate Updates (>10m filter to eliminate unnecessary re-renders)
   useEffect(() => {
     let watchId: number | null = null;
     if (typeof navigator !== 'undefined' && 'geolocation' in navigator && permissionsActive) {
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
-          const exactCoords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-          setUserCoords(exactCoords);
+          const newLat = pos.coords.latitude;
+          const newLng = pos.coords.longitude;
+          const acc = Math.round(pos.coords.accuracy);
+
           setHasRealGpsLock(true);
+          setGpsAccuracyMeters(acc);
+
+          // Only trigger React state update if user moved by at least 10 meters!
+          const distMoved = calculateHaversineDistance(
+            lastCoordsRef.current[0],
+            lastCoordsRef.current[1],
+            newLat,
+            newLng
+          );
+
+          if (distMoved >= 10) {
+            lastCoordsRef.current = [newLat, newLng];
+            setUserCoords([newLat, newLng]);
+          }
         },
         () => {
           setHasRealGpsLock(false);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 2000 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 3000 }
       );
     }
 
@@ -149,10 +165,9 @@ export default function MapView({
     };
   }, [permissionsActive]);
 
-  // 3. Compute Safe Route whenever Destination, ActiveTarget, or Hazards change
+  // 3. Compute Safe Route (Uses ALL hazards in the area for accurate detour planning)
   useEffect(() => {
     if (activeTarget) {
-      // Responder navigating to active SOS victim
       const targetCoords: [number, number] = [activeTarget.latitude, activeTarget.longitude];
       const route = generateBestSafeRoute(userCoords, targetCoords, hazards);
       setSafeRouteResult(route);
@@ -160,14 +175,13 @@ export default function MapView({
     }
 
     if (selectedDestination) {
-      // User navigating to searched safe zone / hospital
       const destCoords: [number, number] = [selectedDestination.latitude, selectedDestination.longitude];
       const route = generateBestSafeRoute(userCoords, destCoords, hazards);
       setSafeRouteResult(route);
       return;
     }
 
-    // Default route to nearest shelter
+    // Default safe corridor to nearest relief haven
     const defaultShelter = MUMBAI_SEARCHABLE_LOCATIONS[0];
     const defaultDest: [number, number] = [defaultShelter.latitude, defaultShelter.longitude];
     const defaultRoute = generateBestSafeRoute(userCoords, defaultDest, hazards);
@@ -178,6 +192,7 @@ export default function MapView({
     setShowPermissionModal(false);
     setPermissionsActive(true);
     if (coords) {
+      lastCoordsRef.current = coords;
       setUserCoords(coords);
       setHazardTargetCoords(coords);
       setHasRealGpsLock(true);
@@ -188,10 +203,10 @@ export default function MapView({
     setHazards((prev) => [newHazard, ...prev]);
   };
 
-  const handleOpenReportAtCoords = (coords: [number, number]) => {
+  const handleOpenReportAtCoords = useCallback((coords: [number, number]) => {
     setHazardTargetCoords(coords);
     setShowHazardModal(true);
-  };
+  }, []);
 
   // Search Results filtering
   const searchResults = useMemo(() => {
@@ -373,7 +388,7 @@ export default function MapView({
             }
             destinationName={selectedDestination?.name || activeTarget?.name || null}
             safeRouteWaypoints={safeRouteResult?.waypoints || null}
-            safeRouteActive={isRoutingActive}
+            safeRouteActive={true}
             isResponder={isResponder}
             hazards={hazards}
             onOpenReportHazard={() => {
@@ -384,12 +399,6 @@ export default function MapView({
             onSelectLocation={(name) => {
               const matched = MUMBAI_SEARCHABLE_LOCATIONS.find((l) => l.name === name);
               if (matched) setSelectedDestination(matched);
-            }}
-            onPdrUpdate={(est) => {
-              setLivePdrEstimate(est);
-              if (est.isGpsLost) {
-                setUserCoords([est.latitude, est.longitude]);
-              }
             }}
           />
         )}
@@ -506,7 +515,7 @@ export default function MapView({
           </span>
         </div>
         <span className={`text-[11px] font-bold ${isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'}`}>
-          ±{livePdrEstimate?.accuracyMeters ?? 15}m
+          ±{gpsAccuracyMeters}m
         </span>
       </div>
     </div>

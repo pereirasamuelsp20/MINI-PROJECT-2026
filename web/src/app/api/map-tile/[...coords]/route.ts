@@ -12,51 +12,39 @@ export async function GET(
   const [z, x, rawY] = coords;
   const y = rawY.replace('.png', '');
 
-  // Custom User-Agent per OpenStreetMap Tile Usage Policy
-  const headers = {
-    'User-Agent': 'DisasterReliefMesh/1.0 (disaster-response-mesh-dev; emergency-mode)',
-    'Accept': 'image/png,image/*;q=0.8',
-  };
+  // Select random subdomain for load distribution
+  const subdomains = ['a', 'b', 'c'];
+  const s = subdomains[(parseInt(x, 10) + parseInt(y, 10)) % subdomains.length];
+  const tileUrl = `https://${s}.tile.openstreetmap.org/${z}/${x}/${y}.png`;
 
   try {
-    const tileUrl = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3500);
+
     const response = await fetch(tileUrl, {
-      headers,
-      next: { revalidate: 86400 }, // Cache tiles for 24 hours
+      headers: {
+        'User-Agent': 'DisasterReliefMesh/2.0 (offline-first-response-mumbai)',
+        'Accept': 'image/png,image/*;q=0.8',
+      },
+      signal: controller.signal,
+      next: { revalidate: 604800 }, // Cache tiles for 7 days
     });
+
+    clearTimeout(timeout);
 
     if (response.ok) {
       const arrayBuffer = await response.arrayBuffer();
       return new NextResponse(arrayBuffer, {
         headers: {
           'Content-Type': 'image/png',
-          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
-    }
-
-    // Fallback: CartoDB Dark Matter / Voyager
-    const fallbackUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`;
-    const fallbackResp = await fetch(fallbackUrl, {
-      headers,
-      next: { revalidate: 86400 },
-    });
-
-    if (fallbackResp.ok) {
-      const arrayBuffer = await fallbackResp.arrayBuffer();
-      return new NextResponse(arrayBuffer, {
-        headers: {
-          'Content-Type': 'image/png',
-          'Cache-Control': 'public, max-age=86400',
+          'Cache-Control': 'public, max-age=604800, stale-while-revalidate=2592000',
           'Access-Control-Allow-Origin': '*',
         },
       });
     }
 
     return new NextResponse('Tile not found', { status: 404 });
-  } catch (err) {
+  } catch {
     return new NextResponse('Tile fetch error', { status: 502 });
   }
 }
-

@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { defaultLocations, MUMBAI_BOUNDS, MUMBAI_CENTER } from '@/lib/mockData';
 import { usePowerMode } from '@/lib/powerMode';
 import { HazardMarker, HAZARD_INFO } from '@/types/hazards';
 import { PDRKalmanTracker, LocationEstimate } from '@/lib/pdr';
-import { TriangleAlert, Footprints, Crosshair, Navigation, MapPin } from 'lucide-react';
+import { calculateHaversineDistance } from '@/lib/mumbaiSearch';
+import { TriangleAlert, Footprints, Crosshair } from 'lucide-react';
 
 export interface MapTarget {
   id: string;
@@ -35,7 +36,12 @@ interface MapInnerProps {
   onPdrUpdate?: (estimate: LocationEstimate) => void;
 }
 
-export default function MapInner({
+// Proximity constraint: 300 meters maximum visual radius for reporting
+const HAZARD_REPORTING_RADIUS_METERS = 300;
+// Proximity display radius: 2.5 km around user to reduce mobile DOM load
+const HAZARD_DISPLAY_RADIUS_METERS = 2500;
+
+function MapInnerComponent({
   userLocation = MUMBAI_CENTER,
   activeTarget = null,
   destinationLocation = null,
@@ -53,47 +59,46 @@ export default function MapInner({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
-  // Layer references for lag-free incremental updates
+  // Layer references for 0-latency direct updates
   const userMarkerRef = useRef<L.Marker | null>(null);
   const accuracyCircleRef = useRef<L.Circle | null>(null);
-  const targetMarkerRef = useRef<L.Marker | null>(null);
+  const proximityCircleRef = useRef<L.Circle | null>(null);
   const destinationMarkerRef = useRef<L.Marker | null>(null);
   const routePolylineRef = useRef<L.Polyline | null>(null);
   const hazardsLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const reliefLayerGroupRef = useRef<L.LayerGroup | null>(null);
 
   const trackerRef = useRef<PDRKalmanTracker | null>(null);
-  const [pdrStatus, setPdrStatus] = useState<LocationEstimate | null>(null);
-  const [isFollowingUser, setIsFollowingUser] = useState<boolean>(true);
+  const currentUserPos = useRef<[number, number]>(userLocation);
+
+  // Status badge state (only updates on actual status transitions to prevent re-renders)
+  const [gpsStatus, setGpsStatus] = useState<{ isLost: boolean; accuracy: number }>({
+    isLost: false,
+    accuracy: 15,
+  });
+
   const [recalibrating, setRecalibrating] = useState<boolean>(false);
-  const [tappedLocation, setTappedLocation] = useState<[number, number] | null>(null);
+  const isFollowingUserRef = useRef<boolean>(true);
 
   const { isPowerSaving } = usePowerMode();
 
-  // Valid coordinate check
-  const currentUserPos = useRef<[number, number]>(userLocation);
-
-  // 1. Initialize PDR Kalman Tracker (Only uses PDR when GPS is lost)
+  // 1. Initialize PDR Tracker & Hardware GPS (Pure GPS prioritized)
   useEffect(() => {
     const tracker = new PDRKalmanTracker(userLocation[0], userLocation[1]);
     trackerRef.current = tracker;
     tracker.start();
 
-    // Listen to fused/GPS updates
     const unsubscribe = tracker.onUpdate((estimate) => {
-      setPdrStatus(estimate);
       currentUserPos.current = [estimate.latitude, estimate.longitude];
 
-      if (onPdrUpdate) onPdrUpdate(estimate);
-
-      // Smoothly update user marker & uncertainty circle without jerking the viewport
-      if (userMarkerRef.current && accuracyCircleRef.current) {
+      // Update Leaflet marker and circles DIRECTLY in DOM without triggering React re-renders
+      if (userMarkerRef.current && accuracyCircleRef.current && proximityCircleRef.current) {
         const newPos = L.latLng(estimate.latitude, estimate.longitude);
         userMarkerRef.current.setLatLng(newPos);
         accuracyCircleRef.current.setLatLng(newPos);
+        proximityCircleRef.current.setLatLng(newPos);
         accuracyCircleRef.current.setRadius(estimate.accuracyMeters);
 
-        // Visual distinction: Orange for PDR dead reckoning, Green/Red for pure GPS
         if (estimate.isGpsLost) {
           accuracyCircleRef.current.setStyle({
             color: '#f59e0b',
@@ -109,16 +114,26 @@ export default function MapInner({
         }
       }
 
-      // ONLY pan map if user hasn't touched/dragged the map
-      if (isFollowingUser && mapInstanceRef.current) {
+      // Smooth pan ONLY if following user, holding the user's manual zoom level
+      if (isFollowingUserRef.current && mapInstanceRef.current) {
         mapInstanceRef.current.panTo([estimate.latitude, estimate.longitude], {
           animate: true,
-          duration: 0.5,
+          duration: 0.4,
         });
       }
+
+      // Only update React status state if status flag changed
+      setGpsStatus((prev) => {
+        if (prev.isLost !== estimate.isGpsLost || Math.abs(prev.accuracy - estimate.accuracyMeters) > 8) {
+          return { isLost: estimate.isGpsLost, accuracy: estimate.accuracyMeters };
+        }
+        return prev;
+      });
+
+      if (onPdrUpdate) onPdrUpdate(estimate);
     });
 
-    // Native Browser Geolocation Watch (High Accuracy Hardware GPS)
+    // Hardware GPS Watcher
     let watchId: number | null = null;
     if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
       watchId = navigator.geolocation.watchPosition(
@@ -129,9 +144,7 @@ export default function MapInner({
             Math.round(pos.coords.accuracy)
           );
         },
-        (err) => {
-          console.warn('GPS Signal degraded, relying on local PDR:', err.message);
-        },
+        () => {},
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 2000 }
       );
     }
@@ -143,20 +156,21 @@ export default function MapInner({
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [isFollowingUser, isPowerSaving]);
+  }, [isPowerSaving]);
 
-  // 2. Initialize Leaflet Map ONCE on mount
+  // 2. Initialize Leaflet Map ONCE on Mount (Holds zoom permanently)
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    if (mapInstanceRef.current) return; // Prevent recreation
+    if (mapInstanceRef.current) return;
 
-    const initialZoom = activeTarget ? 15 : 14;
+    // Requirement: Zoom in on load to level 16, then HOLD manual zoom
+    const initialZoom = 16;
 
     const map = L.map(mapContainerRef.current, {
       center: userLocation,
       zoom: initialZoom,
       minZoom: 10,
-      maxZoom: 18,
+      maxZoom: 19,
       maxBounds: MUMBAI_BOUNDS,
       maxBoundsViscosity: 0.8,
       zoomControl: false,
@@ -164,81 +178,36 @@ export default function MapInner({
     });
     mapInstanceRef.current = map;
 
-    // Detect user interactions: stop snapping back to user location when user explores the map
+    // User manual navigation: stop auto-centering when user touches or zooms
     map.on('dragstart', () => {
-      setIsFollowingUser(false);
+      isFollowingUserRef.current = false;
     });
     map.on('zoomstart', () => {
-      setIsFollowingUser(false);
+      isFollowingUserRef.current = false;
     });
 
-    // MAP CLICK: Allow accurate pin placement anywhere on map!
-    map.on('click', (e: L.LeafletMouseEvent) => {
-      const lat = parseFloat(e.latlng.lat.toFixed(5));
-      const lng = parseFloat(e.latlng.lng.toFixed(5));
-      setTappedLocation([lat, lng]);
-
-      // Pop-up prompt to report hazard at tapped location
-      L.popup()
-        .setLatLng(e.latlng)
-        .setContent(`
-          <div style="font-family: sans-serif; font-size: 12px; color: #111; padding: 2px;">
-            <b style="color: #ff263d; font-size: 13px;">📍 Spot Selected</b>
-            <p style="margin: 4px 0 6px; font-size: 11px; color: #555;">${lat}°N, ${lng}°E</p>
-            <button id="btn-report-at-tap" style="
-              background: #ff263d;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              padding: 5px 10px;
-              font-size: 11px;
-              font-weight: bold;
-              cursor: pointer;
-              width: 100%;
-            ">Report Hazard Here</button>
-          </div>
-        `)
-        .openOn(map);
-
-      setTimeout(() => {
-        const btn = document.getElementById('btn-report-at-tap');
-        if (btn) {
-          btn.onclick = () => {
-            map.closePopup();
-            if (onOpenReportHazardAt) {
-              onOpenReportHazardAt([lat, lng]);
-            } else if (onOpenReportHazard) {
-              onOpenReportHazard();
-            }
-          };
-        }
-      }, 50);
-    });
-
-    // OSM Tiles via direct or local proxy
-    const isLocalhost =
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    const tileUrl = isLocalhost
-      ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-      : '/api/map-tile/{z}/{x}/{y}.png';
-
-    L.tileLayer(tileUrl, {
+    // High-performance direct CDN tile layer with HTTP/2 multi-subdomain concurrent loading
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      subdomains: ['a', 'b', 'c'],
       maxZoom: 19,
+      keepBuffer: 8,        // Keep 8 offscreen tiles in memory for instant pan response
+      updateWhenIdle: true, // Only render new tiles when pan settles (eliminates mobile stutter)
+      updateWhenZooming: false,
+      crossOrigin: true,
       attribution: '&copy; OpenStreetMap',
     }).addTo(map);
 
     // Zoom controls at bottom right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Initialize layer groups for relief and hazards
+    // Layer groups for fast incremental updates without re-renders
     const reliefGroup = L.layerGroup().addTo(map);
     reliefLayerGroupRef.current = reliefGroup;
 
     const hazardsGroup = L.layerGroup().addTo(map);
     hazardsLayerGroupRef.current = hazardsGroup;
 
-    // Create user marker
+    // User Marker
     const userMarkerIcon = L.divIcon({
       className: 'user-marker',
       html: `
@@ -259,8 +228,9 @@ export default function MapInner({
     const userMarker = L.marker(userLocation, { icon: userMarkerIcon }).addTo(map);
     userMarkerRef.current = userMarker;
 
+    // GPS Accuracy Circle
     const accuracyCircle = L.circle(userLocation, {
-      radius: 25,
+      radius: 20,
       color: isPowerSaving ? '#00ff41' : '#ff263d',
       fillColor: isPowerSaving ? '#00ff41' : '#ff263d',
       fillOpacity: 0.15,
@@ -269,7 +239,82 @@ export default function MapInner({
     }).addTo(map);
     accuracyCircleRef.current = accuracyCircle;
 
-    // Populate static Relief Locations
+    // PROXIMITY CIRCLE: 300m Verified Visual Reporting Radius
+    const proximityCircle = L.circle(userLocation, {
+      radius: HAZARD_REPORTING_RADIUS_METERS,
+      color: isPowerSaving ? '#00ff41' : '#3b82f6',
+      fillColor: isPowerSaving ? '#00ff41' : '#3b82f6',
+      fillOpacity: 0.05,
+      weight: 1.5,
+      dashArray: '4, 4',
+    }).addTo(map);
+    proximityCircleRef.current = proximityCircle;
+
+    // REQUIREMENT: Tap anywhere on map to report hazard - ONLY valid within proximity circle!
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      const tappedLat = parseFloat(e.latlng.lat.toFixed(5));
+      const tappedLng = parseFloat(e.latlng.lng.toFixed(5));
+      const userLat = currentUserPos.current[0];
+      const userLng = currentUserPos.current[1];
+
+      // Calculate distance from user to tapped spot
+      const distance = calculateHaversineDistance(userLat, userLng, tappedLat, tappedLng);
+      const isWithinProximity = distance <= HAZARD_REPORTING_RADIUS_METERS;
+
+      if (isWithinProximity) {
+        // Valid spot within 300m proximity
+        L.popup()
+          .setLatLng(e.latlng)
+          .setContent(`
+            <div style="font-family: sans-serif; font-size: 12px; color: #111; padding: 2px;">
+              <b style="color: #059669; font-size: 13px;">✅ Visual Proximity (~${Math.round(distance)}m)</b>
+              <p style="margin: 4px 0 6px; font-size: 11px; color: #444;">${tappedLat}°N, ${tappedLng}°E</p>
+              <button id="btn-report-verified-tap" style="
+                background: #ff263d;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 6px 12px;
+                font-size: 11px;
+                font-weight: bold;
+                cursor: pointer;
+                width: 100%;
+              ">Report Obstruction Here</button>
+            </div>
+          `)
+          .openOn(map);
+
+        setTimeout(() => {
+          const btn = document.getElementById('btn-report-verified-tap');
+          if (btn) {
+            btn.onclick = () => {
+              map.closePopup();
+              if (onOpenReportHazardAt) {
+                onOpenReportHazardAt([tappedLat, tappedLng]);
+              }
+            };
+          }
+        }, 50);
+      } else {
+        // Out of range: block reporting beyond visual proximity
+        L.popup()
+          .setLatLng(e.latlng)
+          .setContent(`
+            <div style="font-family: sans-serif; font-size: 12px; color: #111; padding: 2px; max-width: 200px;">
+              <b style="color: #dc2626; font-size: 13px;">🚫 Outside Reporting Radius</b>
+              <p style="margin: 4px 0 2px; font-size: 11px; color: #555;">
+                This spot is <b>${Math.round(distance)}m away</b>.
+              </p>
+              <p style="margin: 2px 0 0; font-size: 10px; color: #777;">
+                Obstructions can only be reported within your visual proximity circle (300m) to ensure verification.
+              </p>
+            </div>
+          `)
+          .openOn(map);
+      }
+    });
+
+    // Static Relief Haven Markers
     defaultLocations.forEach((loc) => {
       let bgColor = '#ff263d';
       let symbol = '🛡️';
@@ -316,24 +361,28 @@ export default function MapInner({
       });
     });
 
-    // Invalidate size once container mounts
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
-
     return () => {
       map.remove();
       mapInstanceRef.current = null;
     };
   }, []);
 
-  // 3. Incremental, Lag-Free Hazard Synchronization
+  // 3. Proximity-Filtered Hazard Flags (Reduces DOM load & renders instantly)
   useEffect(() => {
     if (!hazardsLayerGroupRef.current) return;
     const group = hazardsLayerGroupRef.current;
     group.clearLayers();
 
-    hazards.forEach((hazard) => {
+    const uLat = currentUserPos.current[0];
+    const uLng = currentUserPos.current[1];
+
+    // REQUIREMENT: Only render hazard flags in user's proximity (<= 2.5km) to reduce load
+    const nearbyHazards = hazards.filter((h) => {
+      const d = calculateHaversineDistance(uLat, uLng, h.latitude, h.longitude);
+      return d <= HAZARD_DISPLAY_RADIUS_METERS;
+    });
+
+    nearbyHazards.forEach((hazard) => {
       const info = HAZARD_INFO[hazard.type] || {
         emoji: '⚠️',
         label: hazard.type,
@@ -364,13 +413,9 @@ export default function MapInner({
             <span>Severity: <b>${hazard.severity.toUpperCase()}</b></span> · 
             <span>Reports: <b>${hazard.confirmCount}</b></span>
           </div>
-          <p style="margin: 4px 0 0; color: #059669; font-size: 10px; font-weight: bold;">
-            Synchronized via BLE Mesh
-          </p>
         </div>
       `);
 
-      // Exclusion radius
       L.circle([hazard.latitude, hazard.longitude], {
         radius: Math.max(hazard.accuracyMeters * 2, 40),
         color: info.color,
@@ -382,24 +427,21 @@ export default function MapInner({
     });
   }, [hazards]);
 
-  // 4. Update Navigation Route & Destination Markers
+  // 4. Update Destination & Safe Route Polyline (Without auto-zooming or changing zoom level!)
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
 
-    // Clear previous route polyline
     if (routePolylineRef.current) {
       map.removeLayer(routePolylineRef.current);
       routePolylineRef.current = null;
     }
 
-    // Clear previous destination marker
     if (destinationMarkerRef.current) {
       map.removeLayer(destinationMarkerRef.current);
       destinationMarkerRef.current = null;
     }
 
-    // If destination exists, drop destination marker
     if (destinationLocation) {
       const destIcon = L.divIcon({
         className: 'dest-marker',
@@ -420,7 +462,6 @@ export default function MapInner({
       destinationMarkerRef.current = dMarker;
     }
 
-    // Render Safe Waypoints Route
     if (safeRouteActive && safeRouteWaypoints && safeRouteWaypoints.length >= 2) {
       const polyline = L.polyline(safeRouteWaypoints, {
         color: activeTarget ? '#ff263d' : isPowerSaving ? '#00ff41' : '#00d294',
@@ -430,21 +471,14 @@ export default function MapInner({
       }).addTo(map);
 
       routePolylineRef.current = polyline;
-
-      // Fit bounds to show route when destination first set
-      try {
-        const bounds = L.latLngBounds(safeRouteWaypoints);
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
-      } catch {
-        // safety
-      }
+      // NOTE: Removed fitBounds() per user requirement! The zoom level is strictly held.
     }
   }, [safeRouteWaypoints, destinationLocation, destinationName, safeRouteActive, activeTarget, isPowerSaving]);
 
-  // 5. Google Maps Style "Recalibrate / My Location" Handler
+  // 5. Google Maps Style Recalibrate Handler (Pan to user, preserving manual zoom)
   const handleRecalibrate = useCallback(() => {
     setRecalibrating(true);
-    setIsFollowingUser(true);
+    isFollowingUserRef.current = true;
 
     if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -457,20 +491,20 @@ export default function MapInner({
             trackerRef.current.updateGPS(freshLat, freshLng, Math.round(pos.coords.accuracy));
           }
 
+          // Pan to user while PRESERVING current manual zoom level
           if (mapInstanceRef.current) {
-            mapInstanceRef.current.flyTo([freshLat, freshLng], 16, {
+            mapInstanceRef.current.panTo([freshLat, freshLng], {
               animate: true,
-              duration: 0.8,
+              duration: 0.6,
             });
           }
-          setTimeout(() => setRecalibrating(false), 800);
+          setRecalibrating(false);
         },
         () => {
-          // Fallback to current estimated position
           if (mapInstanceRef.current) {
-            mapInstanceRef.current.flyTo(currentUserPos.current, 16, {
+            mapInstanceRef.current.panTo(currentUserPos.current, {
               animate: true,
-              duration: 0.8,
+              duration: 0.6,
             });
           }
           setRecalibrating(false);
@@ -479,9 +513,9 @@ export default function MapInner({
       );
     } else {
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.flyTo(currentUserPos.current, 16, {
+        mapInstanceRef.current.panTo(currentUserPos.current, {
           animate: true,
-          duration: 0.8,
+          duration: 0.6,
         });
       }
       setRecalibrating(false);
@@ -502,29 +536,29 @@ export default function MapInner({
       <div className="absolute top-3 left-3 z-[400] pointer-events-none">
         <div
           className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold backdrop-blur-md shadow-md flex items-center gap-2 ${
-            pdrStatus?.isGpsLost
+            gpsStatus.isLost
               ? 'bg-amber-950/80 border-amber-600/70 text-amber-300'
               : isPowerSaving
               ? 'bg-black/90 border-[#00ff41]/30 text-[#00ff41]'
               : 'bg-black/80 border-emerald-600/70 text-emerald-400'
           }`}
         >
-          {pdrStatus?.isGpsLost ? (
+          {gpsStatus.isLost ? (
             <>
               <Footprints className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
-              <span>PDR Dead Reckoning (±{pdrStatus?.accuracyMeters ?? 25}m)</span>
+              <span>PDR Dead Reckoning (±{gpsStatus.accuracy}m)</span>
             </>
           ) : (
             <>
               <span className={`w-2 h-2 rounded-full ${isPowerSaving ? 'bg-[#00ff41]' : 'bg-emerald-400 animate-pulse'}`} />
-              <span>GPS Live (±{pdrStatus?.accuracyMeters ?? 15}m)</span>
+              <span>GPS Live (±{gpsStatus.accuracy}m)</span>
             </>
           )}
         </div>
       </div>
 
-      {/* REQUIREMENT: Red Triangle (Top Right) to Report Hazard */}
-      <div className="absolute top-3 right-3 z-[400] flex flex-col items-end gap-2 pointer-events-auto">
+      {/* SINGLE Designated Red Triangle Button (Top Right) to Report Hazard */}
+      <div className="absolute top-3 right-3 z-[400] flex flex-col items-end gap-1.5 pointer-events-auto">
         <button
           type="button"
           onClick={() => {
@@ -535,51 +569,35 @@ export default function MapInner({
               ? 'bg-[rgba(0,255,65,0.12)] border-[#00ff41] text-[#00ff41] backdrop-blur-sm'
               : 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-red-400 shadow-[0_0_20px_rgba(255,38,61,0.6)] hover:brightness-110'
           }`}
-          title="Report Obstruction / Hazard (BLE)"
+          title="Report Obstruction at your location (Within 300m Proximity)"
         >
           <TriangleAlert className={`w-4 h-4 ${isPowerSaving ? 'text-[#00ff41] fill-[#00ff41]' : 'text-white fill-white animate-pulse'}`} />
           <span>Report Hazard</span>
         </button>
 
         <span className="text-[10px] text-white/80 bg-black/60 px-2 py-0.5 rounded-lg border border-white/10 backdrop-blur-sm">
-          💡 Tap map directly to drop pin
+          📍 Verified in 300m circle
         </span>
       </div>
 
-      {/* GOOGLE MAPS STYLE RECALIBRATE / MY LOCATION BUTTON (Bottom Right above zoom) */}
-      <div className="absolute bottom-16 right-3 z-[400] pointer-events-auto flex flex-col items-end gap-2">
+      {/* SINGLE Google Maps Style Recalibrate / Center Button (Bottom Right) */}
+      <div className="absolute bottom-16 right-3 z-[400] pointer-events-auto">
         <button
           type="button"
           onClick={handleRecalibrate}
           className={`flex items-center gap-1.5 px-3 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider shadow-2xl transition-all active:scale-95 border backdrop-blur-md ${
-            isFollowingUser
-              ? isPowerSaving
-                ? 'border-[#00ff41] bg-[rgba(0,255,65,0.18)] text-[#00ff41]'
-                : 'border-emerald-500 bg-emerald-950/80 text-emerald-300'
-              : isPowerSaving
-              ? 'border-white/20 bg-black/80 text-stone-300 hover:text-white'
+            isPowerSaving
+              ? 'border-[#00ff41] bg-[rgba(0,255,65,0.18)] text-[#00ff41]'
               : 'border-white/20 bg-black/85 text-stone-200 hover:bg-neutral-900'
           }`}
-          title="Center on my location and recalibrate GPS hardware lock"
+          title="Recalibrate and center on GPS location"
         >
-          <Crosshair className={`w-4 h-4 ${recalibrating ? 'animate-spin text-emerald-400' : ''}`} />
-          <span>{recalibrating ? 'Locking GPS…' : 'Recalibrate'}</span>
+          <Crosshair className={`w-4 h-4 ${recalibrating ? 'animate-spin text-emerald-400' : 'text-emerald-400'}`} />
+          <span>{recalibrating ? 'Locking…' : 'Recalibrate'}</span>
         </button>
       </div>
-
-      {/* Free Exploration Notice when user pans away */}
-      {!isFollowingUser && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[400] pointer-events-auto">
-          <button
-            type="button"
-            onClick={handleRecalibrate}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-black/85 text-stone-200 border border-white/20 backdrop-blur-md shadow-lg hover:text-white"
-          >
-            <Navigation className="w-3 h-3 text-emerald-400" />
-            <span>Map Unlocked · Tap to Re-center</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }
+
+export default memo(MapInnerComponent);
