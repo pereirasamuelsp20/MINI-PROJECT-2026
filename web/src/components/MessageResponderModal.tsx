@@ -26,17 +26,17 @@ export default function MessageResponderModal({ onClose, onSubmit }: MessageResp
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col justify-between p-6 pt-12 ${
-        isPowerSaving ? 'bg-black text-[#00ff41]' : 'bg-[#0b0808] text-white'
+        isPowerSaving ? 'bg-black text-[#A8B4D0]' : 'bg-[#0b0808] text-white'
       }`}
     >
       <div>
-        <header className={`flex items-center gap-3 border-b pb-4 mb-5 ${isPowerSaving ? 'border-[rgba(0,255,65,0.15)]' : 'border-white/10'}`}>
+        <header className={`flex items-center gap-3 border-b pb-4 mb-5 ${isPowerSaving ? 'border-[rgba(74,222,128,0.32)]' : 'border-white/10'}`}>
           <button
             type="button"
             onClick={onClose}
             className={`p-1.5 ${
               isPowerSaving
-                ? 'text-[rgba(0,255,65,0.6)] hover:text-[#00ff41]'
+                ? 'text-[#A8B4D0] hover:text-white'
                 : 'text-stone-400 hover:text-white'
             }`}
           >
@@ -45,7 +45,7 @@ export default function MessageResponderModal({ onClose, onSubmit }: MessageResp
           <span
             className={`w-10 h-10 rounded-full flex items-center justify-center ${
               isPowerSaving
-                ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
+                ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white'
                 : 'bg-orange-400/15 text-orange-300'
             }`}
           >
@@ -55,7 +55,7 @@ export default function MessageResponderModal({ onClose, onSubmit }: MessageResp
             <b className="block text-sm font-bold">Relief Responders</b>
             <small
               className={`text-xs block ${
-                isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-emerald-400'
+                isPowerSaving ? 'text-[#A8B4D0]' : 'text-emerald-400'
               }`}
             >
               Mumbai Sector · Online via Mesh
@@ -67,13 +67,13 @@ export default function MessageResponderModal({ onClose, onSubmit }: MessageResp
         <div
           className={`p-4 rounded-2xl border text-xs leading-relaxed ${
             isPowerSaving
-              ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
+              ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm text-white'
               : 'border-orange-500/25 bg-orange-500/10 text-stone-300'
           }`}
         >
           <b
             className={`block mb-1 font-bold ${
-              isPowerSaving ? 'text-[#00ff41]' : 'text-orange-300'
+              isPowerSaving ? 'text-white' : 'text-orange-300'
             }`}
           >
             Non-Emergency Inquiries
@@ -85,7 +85,7 @@ export default function MessageResponderModal({ onClose, onSubmit }: MessageResp
         <div
           className={`mt-5 max-w-[85%] rounded-2xl rounded-bl-sm border p-4 ${
             isPowerSaving
-              ? 'bg-[rgba(0,255,65,0.05)] border-[rgba(0,255,65,0.18)] text-[#00ff41]'
+              ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white'
               : 'bg-[#211717] border-red-950 text-white'
           }`}
         >
@@ -105,7 +105,7 @@ export default function MessageResponderModal({ onClose, onSubmit }: MessageResp
             placeholder="Message responders over BLE…"
             className={`h-12 flex-1 rounded-2xl px-4 text-sm outline-none transition-colors border ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)] focus:border-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white placeholder-[#A8B4D0] focus:border-[rgba(74,222,128,0.32)]'
                 : 'bg-white/5 border border-red-950 text-white placeholder-stone-500 focus:border-red-500'
             }`}
           />
@@ -114,7 +114,7 @@ export default function MessageResponderModal({ onClose, onSubmit }: MessageResp
             disabled={sending || !text.trim()}
             className={`grid size-12 place-items-center rounded-2xl transition-all ${
               isPowerSaving
-                ? 'border border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] disabled:opacity-30'
+                ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white disabled:opacity-30'
                 : 'bg-red-600 text-white shadow-lg disabled:opacity-40 hover:bg-red-500'
             }`}
           >

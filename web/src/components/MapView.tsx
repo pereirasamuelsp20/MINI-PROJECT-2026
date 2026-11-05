@@ -248,7 +248,7 @@ export default function MapView({
           <p
             className={`text-xs font-extrabold uppercase tracking-widest ${
               isPowerSaving
-                ? 'text-[#00ff41]'
+                ? 'text-white'
                 : isResponder
                 ? 'text-emerald-400'
                 : 'text-red-400'
@@ -260,7 +260,7 @@ export default function MapView({
           <span
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
               isPowerSaving
-                ? 'border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[#00ff41]'
+                ? 'border-[rgba(74,222,128,0.32)] bg-[rgba(8,19,12,0.96)] text-white'
                 : isResponder
                 ? 'border-emerald-800/60 bg-emerald-950/30 text-emerald-300'
                 : 'border-red-900/50 bg-red-950/30 text-red-300'
@@ -273,14 +273,14 @@ export default function MapView({
 
         <h1
           className={`mt-1 text-2xl font-extrabold tracking-tight ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-white'
+            isPowerSaving ? 'text-white' : 'text-white'
           }`}
         >
           {isResponder ? 'Responder MeshNav' : 'City MeshMap'}
         </h1>
         <p
           className={`mt-0.5 text-xs leading-relaxed ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
           }`}
         >
           {isResponder
@@ -292,7 +292,7 @@ export default function MapView({
       {/* SEARCH BAR (Top of Map with Safe Route Generation) */}
       <div className="px-5 mb-2.5 relative z-30">
         <div className="relative">
-          <Search className={`w-4 h-4 absolute left-3.5 top-3.5 ${isPowerSaving ? 'text-[#00ff41]' : 'text-stone-400'}`} />
+          <Search className={`w-4 h-4 absolute left-3.5 top-3.5 ${isPowerSaving ? 'text-white' : 'text-stone-400'}`} />
           <input
             type="text"
             value={searchQuery}
@@ -304,7 +304,7 @@ export default function MapView({
             placeholder="Search safe havens, relief camps, hospitals in Mumbai…"
             className={`w-full rounded-2xl pl-10 pr-9 py-2.5 text-xs outline-none border transition-all ${
               isPowerSaving
-                ? 'bg-black border-[rgba(0,255,65,0.25)] text-[#00ff41] placeholder-[rgba(0,255,65,0.45)] focus:border-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white placeholder-[#A8B4D0] focus:border-[rgba(74,222,128,0.32)]'
                 : 'bg-black/70 border-white/10 text-white placeholder-stone-400 focus:border-red-500 shadow-lg'
             }`}
           />
@@ -327,7 +327,7 @@ export default function MapView({
           <div
             className={`absolute left-5 right-5 mt-1.5 rounded-2xl border p-2 shadow-2xl z-50 max-h-64 overflow-y-auto ${
               isPowerSaving
-                ? 'bg-black border-[rgba(0,255,65,0.3)] text-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white'
                 : 'bg-[#150e0e] border-[#54302c] text-white'
             }`}
           >
@@ -336,12 +336,12 @@ export default function MapView({
                 key={loc.id}
                 onClick={() => handleSelectLocationFromSearch(loc)}
                 className={`p-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                  isPowerSaving ? 'hover:bg-[rgba(0,255,65,0.1)]' : 'hover:bg-white/10'
+                  isPowerSaving ? 'hover:bg-[rgba(74,222,128,0.05)]' : 'hover:bg-white/10'
                 }`}
               >
                 <div className="min-w-0 flex-1">
                   <b className="block text-xs font-bold truncate">{loc.name}</b>
-                  <p className={`text-[11px] truncate mt-0.5 ${isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'}`}>
+                  <p className={`text-[11px] truncate mt-0.5 ${isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'}`}>
                     {loc.description}
                   </p>
                 </div>
@@ -384,7 +384,7 @@ export default function MapView({
 
       {/* Map Viewport Container */}
       <div className={`mx-5 h-[430px] relative rounded-3xl overflow-hidden border shadow-2xl ${
-        isPowerSaving ? 'border-[rgba(0,255,65,0.2)]' : 'border-neutral-800'
+        isPowerSaving ? 'border-[rgba(74,222,128,0.32)]' : 'border-neutral-800'
       }`}>
         {!showPermissionModal && (
           <MapInner
@@ -419,7 +419,7 @@ export default function MapView({
       <article
         className={`mx-5 mt-3 rounded-2xl border p-4 transition-colors ${
           isPowerSaving
-            ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
+            ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm text-white'
             : 'bg-[#181111] border-red-950 text-white'
         }`}
       >
@@ -427,7 +427,7 @@ export default function MapView({
           <span
             className={`p-3 rounded-2xl flex-none ${
               isPowerSaving
-                ? 'border border-[rgba(0,255,65,0.25)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
+                ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-red-400'
                 : 'bg-red-500/15 text-red-400'
             }`}
           >
@@ -444,7 +444,7 @@ export default function MapView({
             <div className="flex items-center justify-between">
               <small
                 className={`text-xs font-bold uppercase tracking-wider ${
-                  isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-red-400'
+                  isPowerSaving ? 'text-[#A8B4D0]' : 'text-red-400'
                 }`}
               >
                 {activeTarget
@@ -468,7 +468,7 @@ export default function MapView({
 
             <b
               className={`text-sm block truncate mt-0.5 ${
-                isPowerSaving ? 'text-[#00ff41]' : 'text-white'
+                isPowerSaving ? 'text-white' : 'text-white'
               }`}
             >
               {activeTarget
@@ -480,10 +480,10 @@ export default function MapView({
 
             {/* Distance & Time Details */}
             <div className="flex items-center gap-3 mt-1 text-xs">
-              <span className={`font-bold ${isPowerSaving ? 'text-[#00ff41]' : 'text-stone-200'}`}>
+              <span className={`font-bold ${isPowerSaving ? 'text-white' : 'text-stone-200'}`}>
                 📍 {safeRouteResult?.distanceFormatted || 'Approx. 1.2 km'}
               </span>
-              <span className={isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'}>
+              <span className={isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'}>
                 ⏱️ {safeRouteResult?.timeFormatted || '15 mins walk'}
               </span>
             </div>
@@ -494,7 +494,7 @@ export default function MapView({
                 safeRouteResult?.isRerouted
                   ? 'text-amber-400'
                   : isPowerSaving
-                  ? 'text-[#00ff41]/90'
+                  ? 'text-[#A8B4D0]'
                   : 'text-emerald-400'
               }`}
             >
@@ -508,7 +508,7 @@ export default function MapView({
       <div
         className={`mx-5 mt-2.5 p-3 rounded-2xl border text-xs flex items-center justify-between gap-2.5 ${
           isPowerSaving
-            ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[rgba(0,255,65,0.85)]'
+            ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm text-[#A8B4D0]'
             : 'bg-black/40 border-white/5 text-stone-300'
         }`}
       >
@@ -520,7 +520,7 @@ export default function MapView({
               : 'PDR Dead Reckoning (Sensor Fusion Active)'}
           </span>
         </div>
-        <span className={`text-[11px] font-bold ${isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'}`}>
+        <span className={`text-[11px] font-bold ${isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'}`}>
           ±{gpsAccuracyMeters}m
         </span>
       </div>

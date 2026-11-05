@@ -26,7 +26,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col justify-between p-6 overflow-y-auto transition-colors ${
-        isPowerSaving ? 'bg-black text-[#00ff41]' : 'bg-[#0e0909] text-white'
+        isPowerSaving ? 'bg-black text-[#A8B4D0]' : 'bg-[#0e0909] text-white'
       }`}
     >
       <div>
@@ -36,7 +36,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
           onClick={onClose}
           className={`flex items-center gap-2 text-sm font-semibold transition-colors mb-4 ${
             isPowerSaving
-              ? 'text-[rgba(0,255,65,0.7)] hover:text-[#00ff41]'
+              ? 'text-[#A8B4D0] hover:text-white'
               : 'text-stone-400 hover:text-white'
           }`}
         >
@@ -47,7 +47,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
         {/* Title */}
         <p
           className={`text-xs font-extrabold uppercase tracking-widest ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'
+            isPowerSaving ? 'text-red-400' : 'text-red-400'
           }`}
         >
           Emergency Transmission
@@ -57,7 +57,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
         </h2>
         <p
           className={`mt-1 text-xs ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
           }`}
         >
           Stored locally and relayed across peer devices without internet.
@@ -66,7 +66,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
         {/* Need Selection */}
         <p
           className={`text-xs font-bold uppercase tracking-wider mt-6 mb-3 ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
           }`}
         >
           What is the emergency?
@@ -80,10 +80,10 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
               className={`p-4 rounded-2xl border text-left text-sm font-bold transition-all ${
                 need === type
                   ? isPowerSaving
-                    ? 'border-[#00ff41] bg-[rgba(0,255,65,0.14)] text-[#00ff41]'
+                    ? 'border-red-400 bg-red-500/20 text-red-300'
                     : 'border-red-400 bg-red-500/20 text-red-300 shadow-[0_0_15px_rgba(255,38,61,0.2)]'
                   : isPowerSaving
-                  ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.7)]'
+                  ? 'border-[rgba(74,222,128,0.32)] bg-[rgba(8,19,12,0.96)] text-[#A8B4D0]'
                   : 'border-red-950/70 bg-white/5 text-stone-300'
               }`}
             >
@@ -96,7 +96,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
         <label className="mt-6 block">
           <span
             className={`text-xs font-bold uppercase tracking-wider block mb-2 ${
-              isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+              isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
             }`}
           >
             Details (Injuries, exact landmark, count)
@@ -108,7 +108,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
             placeholder="Describe what happened, injuries, or number of people needing help in Mumbai…"
             className={`h-28 w-full resize-none rounded-2xl p-4 text-sm outline-none transition-colors border ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)] focus:border-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white placeholder-[#A8B4D0] focus:border-[rgba(74,222,128,0.32)]'
                 : 'bg-black/40 border-red-950 text-white placeholder-stone-600 focus:border-red-500'
             }`}
           />
@@ -118,20 +118,20 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
         <div
           className={`mt-5 flex items-center gap-3.5 rounded-2xl border p-4 ${
             isPowerSaving
-              ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
+              ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm text-white'
               : 'border-red-950 bg-white/5 text-stone-300'
           }`}
         >
           <MapPin
             className={`w-5 h-5 flex-none ${
-              isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'
+              isPowerSaving ? 'text-red-400' : 'text-red-400'
             }`}
           />
           <div>
             <b className="block text-xs font-semibold">Location metadata attached</b>
             <small
               className={`text-xs block mt-0.5 ${
-                isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+                isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
               }`}
             >
               Mumbai Sector · GPS estimate (±35m accuracy)
@@ -148,7 +148,7 @@ export default function SOSModal({ onClose, onSubmit }: SOSModalProps) {
           onClick={handleSubmit}
           className={`w-full py-4 px-6 rounded-2xl flex items-center justify-center gap-2 text-sm font-extrabold uppercase tracking-wider transition-all ${
             isPowerSaving
-              ? 'border-2 border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.25)]'
+              ? 'border-0 bg-gradient-to-r from-[#ff6754] via-[#ff263d] to-[#bd1230] text-white'
               : 'bg-gradient-to-r from-[#ff6754] via-[#ff263d] to-[#bd1230] text-white shadow-[0_12px_30px_rgba(207,20,45,0.4)] hover:brightness-110'
           }`}
         >

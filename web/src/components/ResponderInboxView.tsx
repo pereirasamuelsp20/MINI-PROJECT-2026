@@ -18,21 +18,21 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
       <header className="px-6 pb-2 pt-3">
         <p
           className={`text-xs font-extrabold uppercase tracking-widest ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'
+            isPowerSaving ? 'text-red-400' : 'text-red-400'
           }`}
         >
           Citizen Inquiries
         </p>
         <h1
           className={`mt-1 text-2xl font-extrabold tracking-tight ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-white'
+            isPowerSaving ? 'text-white' : 'text-white'
           }`}
         >
           Responder Inbox
         </h1>
         <p
           className={`mt-0.5 text-xs ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
           }`}
         >
           Messages and localized updates from Mumbai residents
@@ -46,7 +46,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
             key={msg.id}
             className={`p-4 rounded-3xl border transition-colors ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm text-white'
                 : 'bg-white/5 border-red-950/80 text-white'
             }`}
           >
@@ -54,7 +54,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
               <span
                 className={`w-10 h-10 rounded-full flex items-center justify-center flex-none ${
                   isPowerSaving
-                    ? 'border border-[rgba(0,255,65,0.3)] text-[#00ff41] bg-[rgba(0,255,65,0.1)]'
+                    ? 'border border-[rgba(74,222,128,0.32)] text-red-400 bg-[rgba(11,24,15,0.97)]'
                     : 'bg-red-500/15 text-red-400'
                 }`}
               >
@@ -64,7 +64,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
                 <b className="block text-sm font-bold truncate">{msg.senderName}</b>
                 <small
                   className={`text-xs block mt-0.5 ${
-                    isPowerSaving ? 'text-[rgba(0,255,65,0.65)]' : 'text-stone-400'
+                    isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
                   }`}
                 >
                   {msg.area} ·{' '}
@@ -78,7 +78,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
                 <span
                   className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded-full ${
                     isPowerSaving
-                      ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.12)] text-[#00ff41]'
+                      ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-red-400'
                       : 'bg-red-500/20 text-red-400'
                   }`}
                 >
@@ -90,7 +90,7 @@ export default function ResponderInboxView({ data }: ResponderInboxViewProps) {
             <p
               className={`mt-3 p-3.5 rounded-2xl text-xs leading-relaxed border ${
                 isPowerSaving
-                  ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.15)] text-[rgba(0,255,65,0.9)]'
+                  ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-[#A8B4D0]'
                   : 'bg-black/30 border border-white/5 text-stone-200'
               }`}
             >

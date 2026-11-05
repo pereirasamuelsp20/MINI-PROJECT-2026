@@ -138,8 +138,8 @@ function MapInnerComponent({
           });
         } else {
           accuracyCircleRef.current.setStyle({
-            color: isPowerSaving ? '#00ff41' : '#ff263d',
-            fillColor: isPowerSaving ? '#00ff41' : '#ff263d',
+            color: isPowerSaving ? '#ff263d' : '#ff263d',
+            fillColor: isPowerSaving ? '#ff263d' : '#ff263d',
             dashArray: '5, 5',
           });
         }
@@ -228,8 +228,8 @@ function MapInnerComponent({
           height: 22px;
           border-radius: 50%;
           background: #ffffff;
-          border: 4px solid ${isPowerSaving ? '#00ff41' : '#ff263d'};
-          box-shadow: 0 0 0 8px ${isPowerSaving ? 'rgba(0,255,65,0.25)' : 'rgba(255,38,61,0.25)'};
+          border: 4px solid ${isPowerSaving ? '#ff263d' : '#ff263d'};
+          box-shadow: 0 0 0 8px ${isPowerSaving ? 'rgba(74, 222, 128, 0.04)' : 'rgba(255,38,61,0.25)'};
           transform: translate(-50%, -50%);
         "></div>
       `,
@@ -243,8 +243,8 @@ function MapInnerComponent({
     // GPS Accuracy Circle
     const accuracyCircle = L.circle(userLocation, {
       radius: 20,
-      color: isPowerSaving ? '#00ff41' : '#ff263d',
-      fillColor: isPowerSaving ? '#00ff41' : '#ff263d',
+      color: isPowerSaving ? '#ff263d' : '#ff263d',
+      fillColor: isPowerSaving ? '#ff263d' : '#ff263d',
       fillOpacity: 0.15,
       weight: 2,
       dashArray: '5, 5',
@@ -254,8 +254,8 @@ function MapInnerComponent({
     // PROXIMITY CIRCLE: 300m Verified Visual Reporting Radius
     const proximityCircle = L.circle(userLocation, {
       radius: HAZARD_REPORTING_RADIUS_METERS,
-      color: isPowerSaving ? '#00ff41' : '#3b82f6',
-      fillColor: isPowerSaving ? '#00ff41' : '#3b82f6',
+      color: isPowerSaving ? '#4ADE80' : '#3b82f6',
+      fillColor: isPowerSaving ? '#4ADE80' : '#3b82f6',
       fillOpacity: 0.05,
       weight: 1.5,
       dashArray: '4, 4',
@@ -414,8 +414,8 @@ function MapInnerComponent({
         });
       } else {
         proximityCircleRef.current.setStyle({
-          color: isPowerSaving ? '#00ff41' : '#3b82f6',
-          fillColor: isPowerSaving ? '#00ff41' : '#3b82f6',
+          color: isPowerSaving ? '#4ADE80' : '#3b82f6',
+          fillColor: isPowerSaving ? '#4ADE80' : '#3b82f6',
           fillOpacity: 0.05,
           weight: 1.5,
           dashArray: '4, 4',
@@ -520,7 +520,7 @@ function MapInnerComponent({
 
     if (safeRouteActive && safeRouteWaypoints && safeRouteWaypoints.length >= 2) {
       const polyline = L.polyline(safeRouteWaypoints, {
-        color: activeTarget ? '#ff263d' : isPowerSaving ? '#00ff41' : '#00d294',
+        color: activeTarget ? '#ff263d' : isPowerSaving ? '#4ADE80' : '#00d294',
         weight: 6,
         opacity: 0.95,
         lineCap: 'round',
@@ -629,7 +629,7 @@ function MapInnerComponent({
             gpsStatus.isLost
               ? 'bg-amber-950/80 border-amber-600/70 text-amber-300'
               : isPowerSaving
-              ? 'bg-black/90 border-[#00ff41]/30 text-[#00ff41]'
+              ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white'
               : 'bg-black/80 border-emerald-600/70 text-emerald-400'
           }`}
         >
@@ -640,7 +640,7 @@ function MapInnerComponent({
             </>
           ) : (
             <>
-              <span className={`w-2 h-2 rounded-full ${isPowerSaving ? 'bg-[#00ff41]' : 'bg-emerald-400 animate-pulse'}`} />
+              <span className={`w-2 h-2 rounded-full ${isPowerSaving ? 'bg-[#4ADE80]' : 'bg-emerald-400 animate-pulse'}`} />
               <span>GPS Live (±{gpsStatus.accuracy}m)</span>
             </>
           )}
@@ -677,7 +677,7 @@ function MapInnerComponent({
       )}
 
       {/* SINGLE Designated Red Triangle Button (Top Right) to Toggle Placement Mode */}
-      <div className="absolute top-3 right-3 z-[400] flex flex-col items-end gap-1.5 pointer-events-auto">
+      <div className="absolute top-[3.25rem] left-3 right-3 z-[400] flex flex-col items-start gap-1.5 pointer-events-auto">
         <button
           type="button"
           onClick={() => {
@@ -687,7 +687,7 @@ function MapInnerComponent({
             isReportingMode
               ? 'bg-amber-600 text-white border-amber-300 ring-2 ring-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
               : isPowerSaving
-              ? 'bg-[rgba(0,255,65,0.12)] border-[#00ff41] text-[#00ff41] backdrop-blur-sm'
+              ? 'bg-[rgba(11,24,15,0.97)] border-[rgba(74,222,128,0.32)] text-white backdrop-blur-sm'
               : 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-red-400 shadow-[0_0_20px_rgba(255,38,61,0.6)] hover:brightness-110'
           }`}
           title={isReportingMode ? 'Cancel Placement' : 'Report Hazard (Within 300m Proximity)'}
@@ -699,7 +699,7 @@ function MapInnerComponent({
             </>
           ) : (
             <>
-              <TriangleAlert className={`w-4 h-4 ${isPowerSaving ? 'text-[#00ff41] fill-[#00ff41]' : 'text-white fill-white animate-pulse'}`} />
+              <TriangleAlert className={`w-4 h-4 ${isPowerSaving ? 'text-white fill-[#FFFFFF]' : 'text-white fill-white animate-pulse'}`} />
               <span>Report Hazard</span>
             </>
           )}
@@ -752,13 +752,13 @@ function MapInnerComponent({
 
       {/* SINGLE Google Maps Style Recalibrate / Center Button (Bottom Right) */}
       {!isReportingMode && (
-        <div className="absolute bottom-16 right-3 z-[400] pointer-events-auto">
+        <div className="absolute bottom-24 right-3 z-[400] pointer-events-auto">
           <button
             type="button"
             onClick={handleRecalibrate}
             className={`flex items-center gap-1.5 px-3 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider shadow-2xl transition-all active:scale-95 border backdrop-blur-md ${
               isPowerSaving
-                ? 'border-[#00ff41] bg-[rgba(0,255,65,0.18)] text-[#00ff41]'
+                ? 'border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white'
                 : 'border-white/20 bg-black/85 text-stone-200 hover:bg-neutral-900'
             }`}
             title="Recalibrate and center on GPS location"

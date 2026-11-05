@@ -83,21 +83,21 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
       <header className="px-6 pb-2 pt-3">
         <p
           className={`text-xs font-extrabold uppercase tracking-widest ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'
+            isPowerSaving ? 'text-red-400' : 'text-red-400'
           }`}
         >
           Disaster Mesh · Mumbai
         </p>
         <h1
           className={`mt-1 text-2xl font-extrabold tracking-tight ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-white'
+            isPowerSaving ? 'text-white' : 'text-white'
           }`}
         >
           Stay safe, Aarya.
         </h1>
         <p
           className={`mt-0.5 text-xs ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
           }`}
         >
           Your community is within BLE reach.
@@ -108,35 +108,35 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
       <div
         className={`mx-5 mb-5 flex items-center gap-3.5 rounded-2xl border p-3.5 ${
           isPowerSaving
-            ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
+            ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm text-white'
             : 'border-red-900/60 bg-red-950/35 text-white'
         }`}
       >
         <span
           className={`w-3 h-3 rounded-full flex-none ${
             isPowerSaving
-              ? 'bg-[#00ff41]'
+              ? 'bg-[#4ADE80]'
               : 'bg-red-500 shadow-[0_0_0_4px_rgba(255,38,61,0.25),0_0_10px_#ff263d]'
           }`}
         />
         <div className="flex-1">
           <b
             className={`block text-xs uppercase tracking-wider font-bold ${
-              isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'
+              isPowerSaving ? 'text-red-400' : 'text-red-400'
             }`}
           >
             Offline Mesh Active
           </b>
           <p
             className={`text-xs block mt-0.5 ${
-              isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
+              isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
             }`}
           >
             6 BLE nodes available in Mumbai sector
           </p>
         </div>
         <ChevronRight
-          className={`w-4 h-4 ${isPowerSaving ? 'text-[#00ff41]' : 'text-stone-400'}`}
+          className={`w-4 h-4 ${isPowerSaving ? 'text-white' : 'text-stone-400'}`}
         />
       </div>
 
@@ -144,7 +144,7 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
       <section className="flex flex-col items-center py-4">
         <p
           className={`mb-3 text-xs font-bold uppercase tracking-wider ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
           }`}
         >
           Need urgent help?
@@ -164,7 +164,7 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
               cy="80"
               r={circleRadius}
               fill="none"
-              stroke={isPowerSaving ? '#00ff41' : '#ff263d'}
+              stroke={isPowerSaving ? '#ff263d' : '#ff263d'}
               strokeWidth="4"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -186,7 +186,7 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
               isHolding ? 'scale-95' : ''
             } ${
               isPowerSaving
-                ? 'border-2 border-[#00ff41] bg-[rgba(0,255,65,0.08)] backdrop-blur-sm text-[#00ff41]'
+                ? 'border border-red-400 bg-[radial-gradient(circle,#ff5e4f_0_42%,#e91e3a_43%_57%,rgba(121,20,34,.55)_58%_63%,transparent_64%)] text-white'
                 : 'border border-red-400 bg-[radial-gradient(circle,#ff5e4f_0_42%,#e91e3a_43%_57%,rgba(121,20,34,.55)_58%_63%,transparent_64%)] shadow-[0_0_55px_rgba(242,37,53,.45)] text-white hover:brightness-110'
             }`}
             style={{
@@ -205,20 +205,13 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
           </button>
         </div>
 
-        <p
-          className={`mt-4 text-xs ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.65)]' : 'text-stone-400'
-          }`}
-        >
-          Hold for {(HOLD_DURATION_MS / 1000).toFixed(1)}s to activate emergency SOS
-        </p>
       </section>
 
       {/* Quick Access Section */}
       <div className="px-5 mt-4">
         <p
           className={`text-xs font-bold uppercase tracking-wider mb-2.5 ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
           }`}
         >
           Quick access
@@ -231,18 +224,18 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
             onClick={() => onNavigate('map')}
             className={`p-4 rounded-3xl border text-left flex flex-col justify-between min-h-[105px] transition-all ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.1)] backdrop-blur-sm'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white hover:bg-[rgba(74,222,128,0.05)] backdrop-blur-sm'
                 : 'bg-gradient-to-br from-[#211313] to-[#111111] border-[#4d2c29] text-white hover:border-red-500/50'
             }`}
           >
             <MapPin
-              className={`w-6 h-6 ${isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'}`}
+              className={`w-6 h-6 ${isPowerSaving ? 'text-red-400' : 'text-red-400'}`}
             />
             <div>
               <b className="text-sm font-bold block mt-2">Safe Zones</b>
               <small
                 className={`text-xs block mt-0.5 ${
-                  isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+                  isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
                 }`}
               >
                 Mumbai relief shelters & routes
@@ -256,18 +249,18 @@ export default function CitizenHome({ data, onNavigate, onOpenSOS }: CitizenHome
             onClick={() => onNavigate('chats')}
             className={`p-4 rounded-3xl border text-left flex flex-col justify-between min-h-[105px] transition-all ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.1)] backdrop-blur-sm'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white hover:bg-[rgba(74,222,128,0.05)] backdrop-blur-sm'
                 : 'bg-gradient-to-br from-[#211313] to-[#111111] border-[#4d2c29] text-white hover:border-red-500/50'
             }`}
           >
             <MessageSquare
-              className={`w-6 h-6 ${isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'}`}
+              className={`w-6 h-6 ${isPowerSaving ? 'text-red-400' : 'text-red-400'}`}
             />
             <div>
               <b className="text-sm font-bold block mt-2">BLE Chats</b>
               <small
                 className={`text-xs block mt-0.5 ${
-                  isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+                  isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
                 }`}
               >
                 Direct chats & community groups

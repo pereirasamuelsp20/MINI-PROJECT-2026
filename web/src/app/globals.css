@@ -13,14 +13,15 @@
 /* ECO Mode Design Tokens */
 .power-saving-mode {
   --eco-bg: #000000;
-  --eco-glass: rgba(0, 255, 65, 0.06);
-  --eco-glass-border: rgba(0, 255, 65, 0.15);
-  --eco-glass-hover: rgba(0, 255, 65, 0.12);
-  --eco-text: #00ff41;
-  --eco-text-muted: rgba(0, 255, 65, 0.65);
-  --eco-text-dim: rgba(0, 255, 65, 0.38);
-  --eco-accent: #00ff41;
-  --eco-accent-soft: rgba(0, 255, 65, 0.20);
+  --eco-glass: rgba(8,19,12,0.96);
+  --eco-panel: rgba(11,24,15,0.97);
+  --eco-glass-border: rgba(74,222,128,0.32);
+  --eco-glass-hover: rgba(74,222,128,0.05);
+  --eco-text: #FFFFFF;
+  --eco-text-muted: #A8B4D0;
+  --eco-text-dim: rgba(168,180,208,0.78);
+  --eco-accent: #4ADE80;
+  --eco-accent-soft: rgba(74,222,128,0.04);
 }
 
 /* Base resets */
@@ -182,14 +183,14 @@ html.power-saving-mode body {
 .power-saving-mode .primary-action {
   background: var(--eco-glass) !important;
   border: 1.5px solid var(--eco-accent) !important;
-  color: var(--eco-accent) !important;
+  color: #FFFFFF !important;
   box-shadow: none !important;
 }
 
 .power-saving-mode .secondary-action {
   background: var(--eco-glass) !important;
   border: 1px solid var(--eco-glass-border) !important;
-  color: var(--eco-accent) !important;
+  color: #FFFFFF !important;
   box-shadow: none !important;
 }
 
@@ -198,6 +199,24 @@ html.power-saving-mode body {
   background: var(--eco-accent) !important;
   box-shadow: none !important;
   animation: none !important;
+}
+
+
+.power-saving-mode button:focus-visible,
+.power-saving-mode input:focus-visible,
+.power-saving-mode textarea:focus-visible,
+.power-saving-mode select:focus-visible {
+  outline: 2px solid #4ADE80 !important;
+  outline-offset: 2px;
+}
+.power-saving-mode h1:not([class*="text-red-"]),
+.power-saving-mode h2:not([class*="text-red-"]),
+.power-saving-mode h3:not([class*="text-red-"]) {
+  color: #FFFFFF;
+}
+
+.power-saving-mode p:not([class*="text-red-"]) {
+  color: var(--eco-text-muted);
 }
 
 /* ---- Battery Savings ---- */

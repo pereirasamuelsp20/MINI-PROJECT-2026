@@ -362,6 +362,24 @@ export function getStoredDirectMessages(peerId?: string): DirectMessage[] {
   return allMessages;
 }
 
+export function deleteDirectMessage(messageId: string): DirectMessage[] {
+  const updated = getStoredDirectMessages().filter((message) => message.id !== messageId);
+  localDirectMessages = updated;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('disaster_mesh_direct_messages', JSON.stringify(updated));
+    } catch {
+      // fallback
+    }
+  }
+  return updated;
+}
+
+export function deleteMeshMessage(messageId: string): void {
+  const current = getStoredReliefData();
+  current.meshMessages = current.meshMessages.filter((message) => message.id !== messageId);
+  saveStoredReliefData(current);
+}
 export function sendDirectMessage(peerId: string, text: string): DirectMessage {
   const allMessages = getStoredDirectMessages();
   const newMsg: DirectMessage = {

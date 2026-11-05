@@ -185,7 +185,7 @@ export default function ReliefMeshApp() {
   return (
     <div className={`relief-page ${isPowerSaving ? 'power-saving-mode' : ''}`}>
       {/* Mobile Frame Container */}
-      <div className={`app-frame ${isPowerSaving ? '!bg-black !border-[rgba(0,255,65,0.2)]' : ''}`}>
+      <div className={`app-frame ${isPowerSaving ? '!bg-black !border-[rgba(74,222,128,0.32)]' : ''}`}>
         {/* If no role is chosen, render Welcome Splash Screen */}
         {!role && <WelcomeScreen onSelectRole={(r) => setRole(r)} />}
 
@@ -316,7 +316,7 @@ export default function ReliefMeshApp() {
           role="status"
           className={`fixed bottom-6 left-1/2 z-50 flex w-[min(350px,calc(100%-2rem))] -translate-x-1/2 items-center gap-2.5 rounded-2xl p-3 text-[10px] shadow-2xl transition-all border ${
             isPowerSaving
-              ? 'bg-black border-[rgba(0,255,65,0.35)] text-[#00ff41] shadow-[0_0_20px_rgba(0,255,65,0.2)] backdrop-blur-sm'
+              ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white shadow-[0_0_20px_rgba(74,222,128,0.04)] backdrop-blur-sm'
               : 'bg-[#211515] border-red-900 text-stone-200'
           }`}
         >

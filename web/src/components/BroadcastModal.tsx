@@ -38,7 +38,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col justify-between p-6 overflow-y-auto transition-colors ${
-        isPowerSaving ? 'bg-black text-[#00ff41]' : 'bg-[#0e0909] text-white'
+        isPowerSaving ? 'bg-black text-[#A8B4D0]' : 'bg-[#0e0909] text-white'
       }`}
     >
       <div>
@@ -47,7 +47,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
           type="button"
           onClick={onClose}
           className={`flex items-center gap-2 text-sm font-semibold transition-colors mb-4 ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)] hover:text-[#00ff41]' : 'text-stone-400 hover:text-white'
+            isPowerSaving ? 'text-[#A8B4D0] hover:text-white' : 'text-stone-400 hover:text-white'
           }`}
         >
           <ArrowLeft className="w-5 h-5" />
@@ -57,7 +57,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
         {/* Title */}
         <p
           className={`text-xs font-extrabold uppercase tracking-widest ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'
+            isPowerSaving ? 'text-red-400' : 'text-red-400'
           }`}
         >
           Civil Safety Broadcast
@@ -67,7 +67,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
         </h2>
         <p
           className={`mt-1 text-xs ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
           }`}
         >
           Broadcasts immediately to all citizen mesh nodes in Mumbai.
@@ -77,7 +77,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
         <label className="mt-6 block">
           <span
             className={`text-xs font-bold uppercase tracking-wider block mb-2 ${
-              isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+              isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
             }`}
           >
             Announcement Headline
@@ -89,7 +89,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
             placeholder="e.g. Bandra Shelter Open — Drinking Water Available"
             className={`w-full rounded-2xl p-4 text-sm outline-none transition-colors border ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)] focus:border-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white placeholder-[#A8B4D0] focus:border-[rgba(74,222,128,0.32)]'
                 : 'bg-black/40 border-red-950 text-white placeholder-stone-600 focus:border-red-500'
             }`}
           />
@@ -99,7 +99,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
         <label className="mt-4 block">
           <span
             className={`text-xs font-bold uppercase tracking-wider block mb-2 ${
-              isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+              isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
             }`}
           >
             Detailed Instructions
@@ -111,7 +111,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
             placeholder="Details on relief supplies, safe evacuation corridors, or emergency notices…"
             className={`w-full resize-none rounded-2xl p-4 text-sm outline-none transition-colors border ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.04)] border-[rgba(0,255,65,0.2)] text-[#00ff41] placeholder-[rgba(0,255,65,0.4)] focus:border-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] text-white placeholder-[#A8B4D0] focus:border-[rgba(74,222,128,0.32)]'
                 : 'bg-black/40 border-red-950 text-white placeholder-stone-600 focus:border-red-500'
             }`}
           />
@@ -120,7 +120,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
         {/* Severity */}
         <p
           className={`text-xs font-bold uppercase tracking-wider mt-5 mb-2.5 ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
           }`}
         >
           Severity Level
@@ -134,12 +134,12 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
               className={`p-3.5 rounded-2xl border text-xs font-bold uppercase tracking-wider transition-all ${
                 severity === lvl
                   ? isPowerSaving
-                    ? 'border-[#00ff41] bg-[rgba(0,255,65,0.14)] text-[#00ff41]'
+                    ? 'border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white'
                     : lvl === 'critical'
                     ? 'border-red-500 bg-red-500/25 text-white'
                     : 'border-orange-500 bg-orange-500/25 text-white'
                   : isPowerSaving
-                  ? 'border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.6)]'
+                  ? 'border-[rgba(74,222,128,0.32)] bg-[rgba(8,19,12,0.96)] text-[#A8B4D0]'
                   : 'border-red-950 text-stone-400'
               }`}
             >
@@ -151,19 +151,19 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
         {/* Broadcast Area Notice */}
         <div
           className={`mt-5 flex items-center gap-3.5 rounded-2xl border p-4 ${
-            isPowerSaving ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm' : 'border-red-950 bg-white/5'
+            isPowerSaving ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm' : 'border-red-950 bg-white/5'
           }`}
         >
           <MapPin
             className={`w-5 h-5 flex-none ${
-              isPowerSaving ? 'text-[#00ff41]' : 'text-stone-400'
+              isPowerSaving ? 'text-white' : 'text-stone-400'
             }`}
           />
           <div>
             <b className="block text-xs font-semibold">Broadcast Coverage</b>
             <small
               className={`text-xs block mt-0.5 ${
-                isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-400'
+                isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-400'
               }`}
             >
               Mumbai Citywide Mesh Coverage (All Nodes)
@@ -179,7 +179,7 @@ export default function BroadcastModal({ onClose, onSubmit }: BroadcastModalProp
           onClick={handleSubmit}
           className={`w-full py-4 px-6 rounded-2xl flex items-center justify-center gap-2 text-sm font-extrabold uppercase tracking-wider transition-all ${
             isPowerSaving
-              ? 'border-2 border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.25)]'
+              ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white hover:bg-[rgba(74,222,128,0.05)]'
               : 'bg-gradient-to-r from-[#ff6754] via-[#ff263d] to-[#bd1230] text-white shadow-[0_12px_30px_rgba(207,20,45,0.4)] hover:brightness-110'
           }`}
         >

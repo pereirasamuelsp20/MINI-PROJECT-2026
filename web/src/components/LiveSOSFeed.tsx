@@ -32,21 +32,21 @@ export default function LiveSOSFeed({
       <header className="px-6 pb-2 pt-3">
         <p
           className={`text-xs font-extrabold uppercase tracking-widest ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'
+            isPowerSaving ? 'text-red-400' : 'text-red-400'
           }`}
         >
           Live Mumbai Mesh Feed
         </p>
         <h1
           className={`mt-1 text-2xl font-extrabold tracking-tight ${
-            isPowerSaving ? 'text-[#00ff41]' : 'text-white'
+            isPowerSaving ? 'text-white' : 'text-white'
           }`}
         >
           Emergency SOS
         </h1>
         <p
           className={`mt-0.5 text-xs ${
-            isPowerSaving ? 'text-[rgba(0,255,65,0.7)]' : 'text-stone-300'
+            isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
           }`}
         >
           {data.alerts.length} verified citizen requests in sector
@@ -63,10 +63,10 @@ export default function LiveSOSFeed({
             className={`whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
               filter === item
                 ? isPowerSaving
-                  ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.14)] text-[#00ff41]'
+                  ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white'
                   : 'bg-red-600 text-white shadow-md'
                 : isPowerSaving
-                ? 'border border-[rgba(0,255,65,0.18)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.6)]'
+                ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(8,19,12,0.96)] text-[#A8B4D0]'
                 : 'border border-red-950 bg-white/5 text-stone-400 hover:text-white'
             }`}
           >
@@ -82,7 +82,7 @@ export default function LiveSOSFeed({
             key={alert.id}
             className={`p-4 rounded-3xl border transition-colors ${
               isPowerSaving
-                ? 'bg-[rgba(0,255,65,0.06)] border-[rgba(0,255,65,0.18)] backdrop-blur-sm text-[#00ff41]'
+                ? 'bg-[rgba(8,19,12,0.96)] border-[rgba(74,222,128,0.32)] backdrop-blur-sm text-white'
                 : 'bg-[#181111] border-red-950/80 text-white'
             }`}
           >
@@ -90,7 +90,7 @@ export default function LiveSOSFeed({
               <span
                 className={`p-3 rounded-2xl flex-none ${
                   isPowerSaving
-                    ? 'border border-[rgba(0,255,65,0.3)] text-[#00ff41] bg-[rgba(0,255,65,0.1)]'
+                    ? 'border border-[rgba(74,222,128,0.32)] text-red-400 bg-[rgba(11,24,15,0.97)]'
                     : 'bg-red-500/15 text-red-400'
                 }`}
               >
@@ -105,12 +105,12 @@ export default function LiveSOSFeed({
                       className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded-full ${
                         alert.status === 'verified'
                           ? isPowerSaving
-                            ? 'border border-[rgba(0,255,65,0.3)] bg-[rgba(0,255,65,0.1)] text-[#00ff41]'
+                            ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white'
                             : 'bg-emerald-500/20 text-emerald-400'
                           : alert.status === 'resolved'
                           ? 'bg-blue-500/20 text-blue-400'
                           : isPowerSaving
-                          ? 'border border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.6)]'
+                          ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(8,19,12,0.96)] text-[#A8B4D0]'
                           : 'bg-red-500/20 text-red-400'
                       }`}
                     >
@@ -121,7 +121,7 @@ export default function LiveSOSFeed({
                         alert.priority === 'urgent'
                           ? 'bg-red-600 text-white'
                           : isPowerSaving
-                          ? 'text-[#00ff41] border border-[rgba(0,255,65,0.25)] bg-[rgba(0,255,65,0.08)]'
+                          ? 'text-white border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)]'
                           : 'bg-white/10 text-stone-300'
                       }`}
                     >
@@ -132,7 +132,7 @@ export default function LiveSOSFeed({
 
                 <p
                   className={`mt-2 text-xs leading-relaxed ${
-                    isPowerSaving ? 'text-[rgba(0,255,65,0.85)]' : 'text-stone-300'
+                    isPowerSaving ? 'text-[#A8B4D0]' : 'text-stone-300'
                   }`}
                 >
                   {alert.details}
@@ -141,12 +141,12 @@ export default function LiveSOSFeed({
                 <div
                   className={`mt-3 flex items-center justify-between text-xs border-t pt-2.5 ${
                     isPowerSaving
-                      ? 'border-[rgba(0,255,65,0.15)] text-[rgba(0,255,65,0.7)]'
+                      ? 'border-[rgba(74,222,128,0.32)] text-[#A8B4D0]'
                       : 'border-white/5 text-stone-400'
                   }`}
                 >
                   <span className="truncate flex items-center gap-1">
-                    <MapPin className={`w-3.5 h-3.5 flex-none ${isPowerSaving ? 'text-[#00ff41]' : 'text-red-400'}`} />
+                    <MapPin className={`w-3.5 h-3.5 flex-none ${isPowerSaving ? 'text-red-400' : 'text-red-400'}`} />
                     {alert.citizenName} · {alert.area}
                   </span>
                   <span>
@@ -165,7 +165,7 @@ export default function LiveSOSFeed({
                     onClick={() => onNavigateToAlert && onNavigateToAlert(alert)}
                     className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
                       isPowerSaving
-                        ? 'border border-[#00ff41] bg-[rgba(0,255,65,0.15)] text-[#00ff41] hover:bg-[rgba(0,255,65,0.25)]'
+                        ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white hover:bg-[rgba(74,222,128,0.05)]'
                         : 'bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-md shadow-red-950/40 hover:brightness-110'
                     }`}
                   >
@@ -179,7 +179,7 @@ export default function LiveSOSFeed({
                       onClick={() => onVerify(alert.id)}
                       className={`py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
                         isPowerSaving
-                          ? 'border border-[rgba(0,255,65,0.35)] bg-[rgba(0,255,65,0.1)] text-[#00ff41] hover:bg-[#00ff41] hover:text-black'
+                          ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(11,24,15,0.97)] text-white hover:bg-[rgba(74,222,128,0.05)] hover:text-white'
                           : 'bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-600/50'
                       }`}
                     >
@@ -193,7 +193,7 @@ export default function LiveSOSFeed({
                       onClick={() => onResolve(alert.id)}
                       className={`py-2 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
                         isPowerSaving
-                          ? 'border border-[rgba(0,255,65,0.2)] bg-[rgba(0,255,65,0.06)] text-[rgba(0,255,65,0.6)] hover:text-[#00ff41]'
+                          ? 'border border-[rgba(74,222,128,0.32)] bg-[rgba(8,19,12,0.96)] text-[#A8B4D0] hover:text-white'
                           : 'bg-white/5 border border-white/10 text-stone-300 hover:bg-white/10'
                       }`}
                     >
